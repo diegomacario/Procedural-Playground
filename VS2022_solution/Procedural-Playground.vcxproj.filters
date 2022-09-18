@@ -61,7 +61,7 @@
     <ClCompile Include="..\src\Camera3.cpp">
       <Filter>Procedural-Playground\Source Files\Base</Filter>
     </ClCompile>
-    <ClCompile Include="..\src\ModelViewerState.cpp">
+    <ClCompile Include="..\src\PlayState.cpp">
       <Filter>Procedural-Playground\Source Files\Base</Filter>
     </ClCompile>
     <ClCompile Include="..\dependencies\glad\glad\glad.c">
@@ -168,7 +168,7 @@
     <ClInclude Include="..\inc\Camera3.h">
       <Filter>Procedural-Playground\Header Files\Base</Filter>
     </ClInclude>
-    <ClInclude Include="..\inc\ModelViewerState.h">
+    <ClInclude Include="..\inc\PlayState.h">
       <Filter>Procedural-Playground\Header Files\Base</Filter>
     </ClInclude>
     <ClInclude Include="..\dependencies\cgltf\cgltf\cgltf.h">

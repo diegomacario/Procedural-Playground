@@ -38,7 +38,7 @@
     <ClInclude Include="..\inc\game.h" />
     <ClInclude Include="..\inc\GLTFLoader.h" />
     <ClInclude Include="..\inc\Interpolation.h" />
-    <ClInclude Include="..\inc\ModelViewerState.h" />
+    <ClInclude Include="..\inc\PlayState.h" />
     <ClInclude Include="..\inc\Pose.h" />
     <ClInclude Include="..\inc\quat.h" />
     <ClInclude Include="..\inc\RearrangeBones.h" />
@@ -74,7 +74,7 @@
     <ClCompile Include="..\src\game.cpp" />
     <ClCompile Include="..\src\GLTFLoader.cpp" />
     <ClCompile Include="..\src\main.cpp" />
-    <ClCompile Include="..\src\ModelViewerState.cpp" />
+    <ClCompile Include="..\src\PlayState.cpp" />
     <ClCompile Include="..\src\Pose.cpp" />
     <ClCompile Include="..\src\quat.cpp" />
     <ClCompile Include="..\src\RearrangeBones.cpp" />
