@@ -24,6 +24,10 @@ private:
    Skeleton                  mBaseSkeleton;
    std::vector<AnimatedMesh> mMeshes;
    std::vector<glm::vec3>    mBaseColors;
+
+   Skeleton                  mPointsBaseSkeleton;
+   std::vector<AnimatedMesh> mPointsMeshes;
+   std::vector<glm::vec3>    mPointsBaseColors;
 };
 
 #endif
