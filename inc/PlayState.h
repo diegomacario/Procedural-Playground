@@ -7,9 +7,7 @@
 #include "Camera3.h"
 #include "texture.h"
 #include "AnimatedMesh.h"
-#include "SkeletonViewer.h"
-#include "Clip.h"
-#include "TrackVisualizer.h"
+#include "AnimatedCharacter.h"
 
 class PlayState : public State
 {
@@ -58,12 +56,7 @@ private:
    std::vector<AnimatedMesh>           mGroundMeshes;
    std::shared_ptr<Texture>            mGroundTexture;
 
-   Skeleton                            mCharacterBaseSkeleton;
-   std::vector<AnimatedMesh>           mCharacterMeshes;
-   Pose                                mPose;
-   std::vector<glm::mat4>              mPosePalette;
-
-   Transform                           mModelTransform;
+   AnimatedCharacter                   mAnimatedCharacter;
 
    bool                                mDisplayGround;
 

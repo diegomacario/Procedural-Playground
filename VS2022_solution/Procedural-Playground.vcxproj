@@ -30,6 +30,7 @@
     <ClInclude Include="..\dependencies\imgui\imgui\imstb_textedit.h" />
     <ClInclude Include="..\dependencies\imgui\imgui\imstb_truetype.h" />
     <ClInclude Include="..\dependencies\stb_image\stb_image\stb_image.h" />
+    <ClInclude Include="..\inc\AnimatedCharacter.h" />
     <ClInclude Include="..\inc\AnimatedMesh.h" />
     <ClInclude Include="..\inc\Camera3.h" />
     <ClInclude Include="..\inc\Clip.h" />
@@ -67,6 +68,7 @@
     <ClCompile Include="..\dependencies\imgui\imgui\imgui_tables.cpp" />
     <ClCompile Include="..\dependencies\imgui\imgui\imgui_widgets.cpp" />
     <ClCompile Include="..\dependencies\stb_image\stb_image\stb_image.cpp" />
+    <ClCompile Include="..\src\AnimatedCharacter.cpp" />
     <ClCompile Include="..\src\AnimatedMesh.cpp" />
     <ClCompile Include="..\src\Camera3.cpp" />
     <ClCompile Include="..\src\Clip.cpp" />

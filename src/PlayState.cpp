@@ -36,9 +36,6 @@ void PlayState::initializeState()
 #ifndef __EMSCRIPTEN__
    mPause = false;
 #endif
-
-   // Set the model transform
-   mModelTransform = Transform(glm::vec3(0.0f, 0.0f, 0.0f), Q::quat(), glm::vec3(1.0f));
 }
 
 void PlayState::enter()
@@ -118,9 +115,6 @@ void PlayState::update(float deltaTime)
       return;
    }
 #endif
-
-   mPose = mCharacterBaseSkeleton.GetBindPose();
-   mPose.GetMatrixPalette(mPosePalette);
 }
 
 void PlayState::render()
@@ -134,11 +128,8 @@ void PlayState::render()
 #ifndef __EMSCRIPTEN__
    mWindow->bindMultisampleFramebuffer();
 #endif
-   glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
-   // Enable depth testing for 3D objects
-   glEnable(GL_DEPTH_TEST);
-   glClear(GL_DEPTH_BUFFER_BIT);
+   glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
    if (mDisplayGround)
    {
@@ -164,27 +155,7 @@ void PlayState::render()
       mStaticMeshShader->use(false);
    }
 
-   // Render the animated meshes
-   mStaticMeshWithoutUVsShader->use(true);
-   mStaticMeshWithoutUVsShader->setUniformMat4("model",      transformToMat4(mModelTransform));
-   mStaticMeshWithoutUVsShader->setUniformMat4("view",       mCamera3.getViewMatrix());
-   mStaticMeshWithoutUVsShader->setUniformMat4("projection", mCamera3.getPerspectiveProjectionMatrix());
-
-   // Loop over the meshes and render each one
-   for (unsigned int i = 0,
-        size = static_cast<unsigned int>(mCharacterMeshes.size());
-        i < size;
-        ++i)
-   {
-      mCharacterMeshes[i].Render();
-   }
-
-   mStaticMeshWithoutUVsShader->use(false);
-
-#ifndef __EMSCRIPTEN__
-   glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
-#endif
-   glEnable(GL_DEPTH_TEST);
+   mAnimatedCharacter.render(mStaticMeshWithoutUVsShader, mCamera3.getViewMatrix(), mCamera3.getPerspectiveProjectionMatrix());
 
    ImGui::Render();
    ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
@@ -204,31 +175,7 @@ void PlayState::exit()
 
 void PlayState::loadCharacter()
 {
-   // Load the animated character
-   cgltf_data* data       = LoadGLTFFile("resources/models/gibbon/gibbon.glb");
-   mCharacterBaseSkeleton = LoadSkeleton(data);
-   mCharacterMeshes       = LoadStaticMeshes(data);
-   FreeGLTFFile(data);
-
-   // Rearrange the skeleton
-   RearrangeSkeleton(mCharacterBaseSkeleton);
-
-   // Configure the VAOs of the animated meshes
-   int positionsAttribLocOfAnimatedShader  = mStaticMeshShader->getAttributeLocation("position");
-   int normalsAttribLocOfAnimatedShader    = mStaticMeshShader->getAttributeLocation("normal");
-   int texCoordsAttribLocOfAnimatedShader  = mStaticMeshShader->getAttributeLocation("texCoord");
-
-   for (unsigned int i = 0,
-        size = static_cast<unsigned int>(mCharacterMeshes.size());
-        i < size;
-        ++i)
-   {
-      mCharacterMeshes[i].ConfigureVAO(positionsAttribLocOfAnimatedShader,
-                                       normalsAttribLocOfAnimatedShader,
-                                       texCoordsAttribLocOfAnimatedShader,
-                                       -1,
-                                       -1);
-   }
+   mAnimatedCharacter.load(mStaticMeshWithoutUVsShader);
 }
 
 void PlayState::loadGround()

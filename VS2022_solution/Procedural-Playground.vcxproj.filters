@@ -97,6 +97,9 @@
     <ClCompile Include="..\src\TrackVisualizer.cpp">
       <Filter>Procedural-Playground\Source Files\Animation</Filter>
     </ClCompile>
+    <ClCompile Include="..\src\AnimatedCharacter.cpp">
+      <Filter>Procedural-Playground\Source Files\Base</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\inc\finite_state_machine.h">
@@ -206,6 +209,9 @@
     </ClInclude>
     <ClInclude Include="..\inc\TrackVisualizer.h">
       <Filter>Procedural-Playground\Header Files\Animation</Filter>
+    </ClInclude>
+    <ClInclude Include="..\inc\AnimatedCharacter.h">
+      <Filter>Procedural-Playground\Header Files\Base</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
