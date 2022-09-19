@@ -15,6 +15,7 @@ uniform PointLight pointLights[MAX_NUMBER_OF_POINT_LIGHTS];
 uniform int numPointLightsInScene;
 
 uniform vec3 cameraPos;
+uniform vec3 baseColor;
 
 out vec4 fragColor;
 
@@ -31,12 +32,12 @@ void main()
    
       // Ambient
       // TODO: Do you really want the ambient light to be attenuated?
-      vec3 ambient      = vec3(0.5, 0.5, 0.5) * attenuation * 0.55;
+      vec3 ambient      = baseColor * attenuation * 0.55;
 
       // Diffuse
       vec3  lightDir    = normalize(pointLights[i].worldPos - fragPos);
       vec3  diff        = max(dot(lightDir, norm), 0.0) * pointLights[i].color * attenuation;
-      vec3  diffuse     = (diff * vec3(0.5, 0.5, 0.5));
+      vec3  diffuse     = (diff * baseColor);
 	  
       color += ambient + diffuse;
    }

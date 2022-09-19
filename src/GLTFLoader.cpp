@@ -782,6 +782,8 @@ std::vector<AnimatedMesh> LoadStaticMeshes(cgltf_data* data)
          // TODO: Perhaps we shouldn't do this here. The user should choose when this is done
          // Once we are done loading the current mesh, we load its VBOs with the data that we read
          currMesh.LoadBuffers();
+
+         currMesh.SetNodeIndex(nodeIndex);
       }
    }
 

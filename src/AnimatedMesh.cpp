@@ -33,6 +33,7 @@ AnimatedMesh::AnimatedMesh(AnimatedMesh&& rhs) noexcept
    , mVAO(std::exchange(rhs.mVAO, 0))
    , mVBOs(std::exchange(rhs.mVBOs, std::array<unsigned int, 5>()))
    , mEBO(std::exchange(rhs.mEBO, 0))
+   , mNodeIndex(std::exchange(rhs.mNodeIndex, 0))
 {
 
 }
@@ -50,6 +51,7 @@ AnimatedMesh& AnimatedMesh::operator=(AnimatedMesh&& rhs) noexcept
    mVAO         = std::exchange(rhs.mVAO, 0);
    mVBOs        = std::exchange(rhs.mVBOs, std::array<unsigned int, 5>());
    mEBO         = std::exchange(rhs.mEBO, 0);
+   mNodeIndex   = std::exchange(rhs.mNodeIndex, 0);
    return *this;
 }
 

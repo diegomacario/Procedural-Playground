@@ -48,6 +48,9 @@ public:
    void                       Render();
    void                       RenderInstanced(unsigned int numInstances);
 
+   unsigned int               GetNodeIndex() const { return mNodeIndex; }
+   void                       SetNodeIndex(unsigned int nodeIndex) { mNodeIndex = nodeIndex; }
+
 private:
 
    std::vector<glm::vec3>      mPositions;
@@ -71,6 +74,8 @@ private:
    unsigned int                mVAO;
    std::array<unsigned int, 5> mVBOs;
    unsigned int                mEBO;
+
+   unsigned int                mNodeIndex;
 };
 
 #endif
