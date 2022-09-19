@@ -19,15 +19,13 @@ PlayState::PlayState(const std::shared_ptr<FiniteStateMachine>& finiteStateMachi
    , mWindow(window)
    , mCamera3(7.5f, 25.0f, glm::vec3(0.0f), Q::quat(), glm::vec3(0.0f, 2.5f, 0.0f), 2.0f, 20.0f, 0.0f, 90.0f, 45.0f, 1280.0f / 720.0f, 0.1f, 130.0f, 0.25f)
 {
-   // Initialize the animated mesh shader
-   mAnimatedMeshShader = ResourceManager<Shader>().loadUnmanagedResource<ShaderLoader>("resources/shaders/animated_mesh_with_pregenerated_skin_matrices.vert",
-                                                                                       "resources/shaders/diffuse_illumination.frag");
-   configureLights(mAnimatedMeshShader);
+   mStaticMeshShader = ResourceManager<Shader>().loadUnmanagedResource<ShaderLoader>("resources/shaders/static_mesh.vert",
+                                                                                     "resources/shaders/ambient_diffuse_illumination.frag");
+   configureLights(mStaticMeshShader);
 
-   // Initialize the ground shader
-   mGroundShader = ResourceManager<Shader>().loadUnmanagedResource<ShaderLoader>("resources/shaders/static_mesh.vert",
-                                                                                 "resources/shaders/ambient_diffuse_illumination.frag");
-   configureLights(mGroundShader);
+   mStaticMeshWithoutUVsShader = ResourceManager<Shader>().loadUnmanagedResource<ShaderLoader>("resources/shaders/static_mesh_without_uvs.vert",
+                                                                                               "resources/shaders/ambient_diffuse_illumination_without_uvs.frag");
+   configureLights(mStaticMeshWithoutUVsShader);
 
    loadCharacter();
    loadGround();
@@ -39,64 +37,8 @@ void PlayState::initializeState()
    mPause = false;
 #endif
 
-   // Set the initial clip
-   mSelectedClip = 5;
-   mCurrentClipIndex = 5;
-
-   // Set the initial playback time
-   mPlaybackTime = 0.0f;
-   // Set the initial playback speed
-   mSelectedPlaybackSpeed = 1.0f;
-   // Set the initial rendering options
-   mDisplayGround = false;
-   mDisplayGraphs = true;
-   mDisplayMesh   = true;
-   mDisplayBones  = true;
-   mDisplayJoints = true;
-#ifndef __EMSCRIPTEN__
-   mWireframeModeForCharacter = false;
-   mWireframeModeForJoints    = false;
-   mPerformDepthTesting       = false;
-#endif
-   mFillEmptyTilesWithRepeatedGraphs = true;
-
-   mCharacterSkeleton = mCharacterBaseSkeleton;
-
-   // Set the initial pose
-   mPose = mCharacterSkeleton.GetRestPose();
-
    // Set the model transform
    mModelTransform = Transform(glm::vec3(0.0f, 0.0f, 0.0f), Q::quat(), glm::vec3(1.0f));
-
-   mJointScaleFactor = 7.5f;
-
-   // Initialize the bones of the skeleton viewer
-   mSkeletonViewer.InitializeBones(mPose);
-
-   // Sample the clip to get the animated pose
-   FastClip& currClip = mCharacterClips[mCurrentClipIndex];
-   mPlaybackTime = currClip.Sample(mPose, mPlaybackTime);
-
-   // Get the palette of the animated pose
-   mPose.GetMatrixPalette(mPosePalette);
-
-   std::vector<glm::mat4>& inverseBindPose = mCharacterSkeleton.GetInvBindPose();
-
-   // Generate the skin matrices
-   mSkinMatrices.resize(mPosePalette.size());
-   for (unsigned int i = 0,
-        size = static_cast<unsigned int>(mPosePalette.size());
-        i < size;
-        ++i)
-   {
-      mSkinMatrices[i] = mPosePalette[i] * inverseBindPose[i];
-   }
-
-   // Update the skeleton viewer
-   mSkeletonViewer.UpdateBones(mPose, mPosePalette);
-
-   // Reset the track visualizer
-   mTrackVisualizer.setTracks(mCharacterClips[mCurrentClipIndex].GetTransformTracks());
 }
 
 void PlayState::enter()
@@ -177,40 +119,8 @@ void PlayState::update(float deltaTime)
    }
 #endif
 
-   if (mCurrentClipIndex != mSelectedClip)
-   {
-      mCurrentClipIndex = mSelectedClip;
-      mPose = mCharacterSkeleton.GetRestPose();
-      mPlaybackTime = 0.0f;
-
-      // Reset the track visualizer
-      mTrackVisualizer.setTracks(mCharacterClips[mCurrentClipIndex].GetTransformTracks());
-   }
-
-   // Sample the clip to get the animated pose
-   FastClip& currClip = mCharacterClips[mCurrentClipIndex];
-   mPlaybackTime = currClip.Sample(mPose, mPlaybackTime + (deltaTime * mSelectedPlaybackSpeed));
-
-   // Get the palette of the animated pose
+   mPose = mCharacterBaseSkeleton.GetBindPose();
    mPose.GetMatrixPalette(mPosePalette);
-
-   std::vector<glm::mat4>& inverseBindPose = mCharacterSkeleton.GetInvBindPose();
-
-   // Generate the skin matrices
-   mSkinMatrices.resize(mPosePalette.size());
-   for (unsigned int i = 0,
-        size = static_cast<unsigned int>(mPosePalette.size());
-        i < size;
-        ++i)
-   {
-      mSkinMatrices[i] = mPosePalette[i] * inverseBindPose[i];
-   }
-
-   // Update the skeleton viewer
-   mSkeletonViewer.UpdateBones(mPose, mPosePalette);
-
-   // Update the track visualizer
-   mTrackVisualizer.update(deltaTime, mSelectedPlaybackSpeed, mWindow, mFillEmptyTilesWithRepeatedGraphs, mDisplayGraphs);
 }
 
 void PlayState::render()
@@ -228,25 +138,18 @@ void PlayState::render()
 
    // Enable depth testing for 3D objects
    glEnable(GL_DEPTH_TEST);
-
-   // Render the graphs
-   if (mDisplayGraphs)
-   {
-      mTrackVisualizer.render(mFillEmptyTilesWithRepeatedGraphs);
-   }
-
    glClear(GL_DEPTH_BUFFER_BIT);
 
    if (mDisplayGround)
    {
-      mGroundShader->use(true);
+      mStaticMeshShader->use(true);
 
       glm::mat4 modelMatrix(1.0f);
       modelMatrix = glm::scale(modelMatrix, glm::vec3(0.10f));
-      mGroundShader->setUniformMat4("model",      modelMatrix);
-      mGroundShader->setUniformMat4("view",       mCamera3.getViewMatrix());
-      mGroundShader->setUniformMat4("projection", mCamera3.getPerspectiveProjectionMatrix());
-      mGroundTexture->bind(0, mGroundShader->getUniformLocation("diffuseTex"));
+      mStaticMeshShader->setUniformMat4("model",      modelMatrix);
+      mStaticMeshShader->setUniformMat4("view",       mCamera3.getViewMatrix());
+      mStaticMeshShader->setUniformMat4("projection", mCamera3.getPerspectiveProjectionMatrix());
+      mGroundTexture->bind(0, mStaticMeshShader->getUniformLocation("diffuseTex"));
 
       // Loop over the ground meshes and render each one
       for (unsigned int i = 0,
@@ -258,75 +161,25 @@ void PlayState::render()
       }
 
       mGroundTexture->unbind(0);
-      mGroundShader->use(false);
+      mStaticMeshShader->use(false);
    }
-
-#ifndef __EMSCRIPTEN__
-   if (mWireframeModeForCharacter)
-   {
-      glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
-   }
-#endif
 
    // Render the animated meshes
-   if (mDisplayMesh)
+   mStaticMeshWithoutUVsShader->use(true);
+   mStaticMeshWithoutUVsShader->setUniformMat4("model",      transformToMat4(mModelTransform));
+   mStaticMeshWithoutUVsShader->setUniformMat4("view",       mCamera3.getViewMatrix());
+   mStaticMeshWithoutUVsShader->setUniformMat4("projection", mCamera3.getPerspectiveProjectionMatrix());
+
+   // Loop over the meshes and render each one
+   for (unsigned int i = 0,
+        size = static_cast<unsigned int>(mCharacterMeshes.size());
+        i < size;
+        ++i)
    {
-      mAnimatedMeshShader->use(true);
-      mAnimatedMeshShader->setUniformMat4("model",      transformToMat4(mModelTransform));
-      mAnimatedMeshShader->setUniformMat4("view",       mCamera3.getViewMatrix());
-      mAnimatedMeshShader->setUniformMat4("projection", mCamera3.getPerspectiveProjectionMatrix());
-      mAnimatedMeshShader->setUniformMat4Array("animated[0]", mSkinMatrices);
-      mCharacterTexture->bind(0, mAnimatedMeshShader->getUniformLocation("diffuseTex"));
-
-      // Loop over the meshes and render each one
-      for (unsigned int i = 0,
-           size = static_cast<unsigned int>(mCharacterMeshes.size());
-           i < size;
-           ++i)
-      {
-         mCharacterMeshes[i].Render();
-      }
-
-      mCharacterTexture->unbind(0);
-      mAnimatedMeshShader->use(false);
+      mCharacterMeshes[i].Render();
    }
 
-#ifdef __EMSCRIPTEN__
-   glDisable(GL_DEPTH_TEST);
-#else
-   glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
-
-   if (!mPerformDepthTesting)
-   {
-      glDisable(GL_DEPTH_TEST);
-   }
-#endif
-
-   // Render the bones
-   if (mDisplayBones)
-   {
-      mSkeletonViewer.RenderBones(mModelTransform, mCamera3.getPerspectiveProjectionViewMatrix());
-   }
-
-#ifndef __EMSCRIPTEN__
-   if (mWireframeModeForJoints)
-   {
-      glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
-   }
-#endif
-
-   // Render the joints
-   if (mDisplayJoints)
-   {
-      int indexOfGlowingJoint = -1;
-      int indexOfSelectedGraph = mTrackVisualizer.getIndexOfSelectedGraph();
-      if (indexOfSelectedGraph != -1)
-      {
-         indexOfGlowingJoint = mCharacterClips[mCurrentClipIndex].GetJointIDOfTransformTrack(indexOfSelectedGraph);
-      }
-
-      mSkeletonViewer.RenderJoints(mModelTransform, mCamera3.getPerspectiveProjectionViewMatrix(), mPosePalette, mJointScaleFactor, indexOfGlowingJoint);
-   }
+   mStaticMeshWithoutUVsShader->use(false);
 
 #ifndef __EMSCRIPTEN__
    glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
@@ -351,53 +204,19 @@ void PlayState::exit()
 
 void PlayState::loadCharacter()
 {
-   std::string characterTextureFilePath = "resources/models/woman/woman.png";
-
-   std::string characterModelFilePath = "resources/models/woman/woman.glb";
-
-   // Load the texture of the animated character
-   mCharacterTexture = ResourceManager<Texture>().loadUnmanagedResource<TextureLoader>(characterTextureFilePath);
-
    // Load the animated character
-   cgltf_data* data = LoadGLTFFile(characterModelFilePath.c_str());
+   cgltf_data* data       = LoadGLTFFile("resources/models/gibbon/gibbon.glb");
    mCharacterBaseSkeleton = LoadSkeleton(data);
-   mCharacterMeshes = LoadAnimatedMeshes(data);
-   std::vector<Clip> characterClips = LoadClips(data);
+   mCharacterMeshes       = LoadStaticMeshes(data);
    FreeGLTFFile(data);
 
    // Rearrange the skeleton
-   JointMap characterJointMap = RearrangeSkeleton(mCharacterBaseSkeleton);
-
-   // Rearrange the meshes
-   for (unsigned int meshIndex = 0,
-        numMeshes = static_cast<unsigned int>(mCharacterMeshes.size());
-        meshIndex < numMeshes;
-        ++meshIndex)
-   {
-      RearrangeMesh(mCharacterMeshes[meshIndex], characterJointMap);
-      mCharacterMeshes[meshIndex].ClearMeshData();
-   }
-
-   // Optimize the clips, rearrange them and store them
-   std::string characterClipNames;
-   for (unsigned int clipIndex = 0,
-        numClips = static_cast<unsigned int>(characterClips.size());
-        clipIndex < numClips;
-        ++clipIndex)
-   {
-      FastClip currClip = OptimizeClip(characterClips[clipIndex]);
-      RearrangeFastClip(currClip, characterJointMap);
-      mCharacterClips.push_back(currClip);
-      characterClipNames += currClip.GetName() + '\0';
-   }
-   mCharacterClipNames = characterClipNames;
+   RearrangeSkeleton(mCharacterBaseSkeleton);
 
    // Configure the VAOs of the animated meshes
-   int positionsAttribLocOfAnimatedShader  = mAnimatedMeshShader->getAttributeLocation("position");
-   int normalsAttribLocOfAnimatedShader    = mAnimatedMeshShader->getAttributeLocation("normal");
-   int texCoordsAttribLocOfAnimatedShader  = mAnimatedMeshShader->getAttributeLocation("texCoord");
-   int weightsAttribLocOfAnimatedShader    = mAnimatedMeshShader->getAttributeLocation("weights");
-   int influencesAttribLocOfAnimatedShader = mAnimatedMeshShader->getAttributeLocation("joints");
+   int positionsAttribLocOfAnimatedShader  = mStaticMeshShader->getAttributeLocation("position");
+   int normalsAttribLocOfAnimatedShader    = mStaticMeshShader->getAttributeLocation("normal");
+   int texCoordsAttribLocOfAnimatedShader  = mStaticMeshShader->getAttributeLocation("texCoord");
 
    for (unsigned int i = 0,
         size = static_cast<unsigned int>(mCharacterMeshes.size());
@@ -407,8 +226,8 @@ void PlayState::loadCharacter()
       mCharacterMeshes[i].ConfigureVAO(positionsAttribLocOfAnimatedShader,
                                        normalsAttribLocOfAnimatedShader,
                                        texCoordsAttribLocOfAnimatedShader,
-                                       weightsAttribLocOfAnimatedShader,
-                                       influencesAttribLocOfAnimatedShader);
+                                       -1,
+                                       -1);
    }
 }
 
@@ -422,9 +241,9 @@ void PlayState::loadGround()
    mGroundMeshes = LoadStaticMeshes(data);
    FreeGLTFFile(data);
 
-   int positionsAttribLocOfStaticShader = mGroundShader->getAttributeLocation("position");
-   int normalsAttribLocOfStaticShader   = mGroundShader->getAttributeLocation("normal");
-   int texCoordsAttribLocOfStaticShader = mGroundShader->getAttributeLocation("texCoord");
+   int positionsAttribLocOfStaticShader = mStaticMeshShader->getAttributeLocation("position");
+   int normalsAttribLocOfStaticShader   = mStaticMeshShader->getAttributeLocation("normal");
+   int texCoordsAttribLocOfStaticShader = mStaticMeshShader->getAttributeLocation("texCoord");
    for (unsigned int i = 0,
         size = static_cast<unsigned int>(mGroundMeshes.size());
         i < size;
@@ -494,37 +313,7 @@ void PlayState::userInterface()
 
    if (ImGui::CollapsingHeader("Settings", nullptr, ImGuiTreeNodeFlags_DefaultOpen))
    {
-      ImGui::Combo("Clip", &mSelectedClip, mCharacterClipNames.c_str());
-
-      ImGui::SliderFloat("Playback Speed", &mSelectedPlaybackSpeed, 0.0f, 2.0f, "%.3f");
-
-      float durationOfCurrClip = mCharacterClips[mCurrentClipIndex].GetDuration();
-      char progress[32];
-      snprintf(progress, 32, "%.3f / %.3f", mPlaybackTime, durationOfCurrClip);
-      ImGui::ProgressBar(mPlaybackTime / durationOfCurrClip, ImVec2(0.0f, 0.0f), progress);
-
-      ImGui::SameLine(0.0f, ImGui::GetStyle().ItemInnerSpacing.x);
-      ImGui::Text("Playback Time");
-
       ImGui::Checkbox("Display Ground", &mDisplayGround);
-
-      ImGui::Checkbox("Display Graphs", &mDisplayGraphs);
-
-      ImGui::Checkbox("Display Skin", &mDisplayMesh);
-
-      ImGui::Checkbox("Display Bones", &mDisplayBones);
-
-      ImGui::Checkbox("Display Joints", &mDisplayJoints);
-
-#ifndef __EMSCRIPTEN__
-      ImGui::Checkbox("Wireframe Mode for Skin", &mWireframeModeForCharacter);
-
-      ImGui::Checkbox("Wireframe Mode for Joints", &mWireframeModeForJoints);
-
-      ImGui::Checkbox("Perform Depth Testing", &mPerformDepthTesting);
-#endif
-
-      ImGui::Checkbox("Fill Empty Tiles With Repeated Graphs", &mFillEmptyTilesWithRepeatedGraphs);
    }
 
    ImGui::End();

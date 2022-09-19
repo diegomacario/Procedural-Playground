@@ -52,46 +52,24 @@ private:
 
    Camera3                             mCamera3;
 
+   std::shared_ptr<Shader>             mStaticMeshShader;
+   std::shared_ptr<Shader>             mStaticMeshWithoutUVsShader;
+
    std::vector<AnimatedMesh>           mGroundMeshes;
    std::shared_ptr<Texture>            mGroundTexture;
-   std::shared_ptr<Shader>             mGroundShader;
 
-   std::shared_ptr<Shader>             mAnimatedMeshShader;
-   std::shared_ptr<Texture>            mCharacterTexture;
    Skeleton                            mCharacterBaseSkeleton;
-   Skeleton                            mCharacterSkeleton;
    std::vector<AnimatedMesh>           mCharacterMeshes;
-   std::vector<FastClip>               mCharacterClips;
-   std::string                         mCharacterClipNames;
-
-   unsigned int                        mCurrentClipIndex;
-   float                               mPlaybackTime;
    Pose                                mPose;
    std::vector<glm::mat4>              mPosePalette;
-   std::vector<glm::mat4>              mSkinMatrices;
-   Transform                           mModelTransform;
-   float                               mJointScaleFactor;
 
-   int                                 mSelectedClip;
-   float                               mSelectedPlaybackSpeed;
+   Transform                           mModelTransform;
+
    bool                                mDisplayGround;
-   bool                                mDisplayGraphs;
-   bool                                mDisplayMesh;
-   bool                                mDisplayBones;
-   bool                                mDisplayJoints;
-#ifndef __EMSCRIPTEN__
-   bool                                mWireframeModeForCharacter;
-   bool                                mWireframeModeForJoints;
-   bool                                mPerformDepthTesting;
-#endif
-   bool                                mFillEmptyTilesWithRepeatedGraphs;
 
 #ifndef __EMSCRIPTEN__
    bool                                mPause = false;
 #endif
-
-   SkeletonViewer                      mSkeletonViewer;
-   TrackVisualizer                     mTrackVisualizer;
 };
 
 #endif
