@@ -55,6 +55,7 @@
     <ClInclude Include="..\inc\TrackVisualizer.h" />
     <ClInclude Include="..\inc\Transform.h" />
     <ClInclude Include="..\inc\TransformTrack.h" />
+    <ClInclude Include="..\inc\VerletSystem.h" />
     <ClInclude Include="..\inc\window.h" />
   </ItemGroup>
   <ItemGroup>
@@ -90,6 +91,7 @@
     <ClCompile Include="..\src\TrackVisualizer.cpp" />
     <ClCompile Include="..\src\Transform.cpp" />
     <ClCompile Include="..\src\TransformTrack.cpp" />
+    <ClCompile Include="..\src\VerletSystem.cpp" />
     <ClCompile Include="..\src\window.cpp" />
   </ItemGroup>
   <PropertyGroup Label="Globals">

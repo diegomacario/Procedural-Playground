@@ -124,11 +124,11 @@ void AnimatedCharacter::render(const std::shared_ptr<Shader>& staticMeshWithoutU
         ++i)
    {
       unsigned int nodeIndex = mPointsMeshes[i].GetNodeIndex();
-      Transform offset;
-      offset.position = glm::vec3(0.0f, 0.0f, -0.2f);
+      //Transform offset;
+      //offset.position = glm::vec3(0.0f, 0.0f, -0.2f);
       Transform globalTransform = mPointsBaseSkeleton.GetBindPose().GetGlobalTransform(nodeIndex);
-      Transform combined = combine(offset, globalTransform);
-      staticMeshWithoutUVsShader->setUniformMat4("model", transformToMat4(combined));
+      //Transform combined = combine(offset, globalTransform);
+      staticMeshWithoutUVsShader->setUniformMat4("model", transformToMat4(globalTransform));
       staticMeshWithoutUVsShader->setUniformVec3("baseColor", mPointsBaseColors[i]);
 
       mPointsMeshes[i].Render();
