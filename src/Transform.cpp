@@ -126,3 +126,9 @@ glm::vec3 transformVector(const Transform& t, const glm::vec3& v)
    // Only a magnitude and a direction
    return t.rotation * (t.scale * v);
 }
+
+glm::vec3 inverseTransformPoint(const Transform& t, const glm::vec3& p)
+{
+   Transform invT = inverse(t);
+   return invT.position + (invT.rotation * (invT.scale * p));
+}

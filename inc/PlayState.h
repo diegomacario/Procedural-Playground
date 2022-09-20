@@ -33,7 +33,6 @@ public:
 
 private:
 
-   void loadCharacter();
    void loadGround();
 
    void configureLights(const std::shared_ptr<Shader>& shader);

@@ -44,5 +44,6 @@ glm::mat4 transformToMat4(const Transform& t);
 Transform mat4ToTransform(const glm::mat4& m);
 glm::vec3 transformPoint(const Transform& t, const glm::vec3& p);
 glm::vec3 transformVector(const Transform& t, const glm::vec3& v);
+glm::vec3 inverseTransformPoint(const Transform& t, const glm::vec3& p);
 
 #endif

@@ -20,8 +20,6 @@ public:
    void EndSim();
    void Step(float step);
 
-private:
-
    struct Point
    {
       glm::vec3   bindPos; // Initial position, good for skinning

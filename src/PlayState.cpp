@@ -27,7 +27,8 @@ PlayState::PlayState(const std::shared_ptr<FiniteStateMachine>& finiteStateMachi
                                                                                                "resources/shaders/ambient_diffuse_illumination_without_uvs.frag");
    configureLights(mStaticMeshWithoutUVsShader);
 
-   loadCharacter();
+   mAnimatedCharacter.initialize(mStaticMeshWithoutUVsShader);
+
    loadGround();
 }
 
@@ -174,11 +175,6 @@ void PlayState::render()
 void PlayState::exit()
 {
 
-}
-
-void PlayState::loadCharacter()
-{
-   mAnimatedCharacter.load(mStaticMeshWithoutUVsShader);
 }
 
 void PlayState::loadGround()
