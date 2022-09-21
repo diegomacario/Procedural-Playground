@@ -38,7 +38,20 @@ std::vector<std::string>& Skeleton::GetJointNames()
 
 std::string& Skeleton::GetJointName(unsigned int jointIndex)
 {
+   // TODO: This doesn't handle invalid joint indices
    return mJointNames[jointIndex];
+}
+
+bool Skeleton::GetJointIndex(const std::string& jointName, unsigned int& outJointIndex)
+{
+   std::vector<std::string>::iterator it = std::find(mJointNames.begin(), mJointNames.end(), jointName);
+   if (it != mJointNames.end())
+   {
+      outJointIndex = static_cast<unsigned int>(it - mJointNames.begin());
+      return true;
+   }
+
+   return false;
 }
 
 void Skeleton::UpdateInverseBindPose()

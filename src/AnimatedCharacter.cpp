@@ -48,6 +48,172 @@ AnimatedCharacter::~AnimatedCharacter()
 void AnimatedCharacter::initialize(const std::shared_ptr<Shader>& staticMeshWithoutUVsShader)
 {
    load(staticMeshWithoutUVsShader);
+
+   // Starting point
+   unsigned int jointIndex = 0;
+   bool found = mBaseSkeleton.GetJointIndex("display_gibbon", jointIndex);
+   if (found) { simple_pos = mBaseSkeleton.GetBindPose().GetGlobalTransform(jointIndex).position; }
+   simple_pos[1] = 0.0f;
+   simple_pos[2] = 0.0f;
+
+   // Init hand positions
+   for (int i = 0; i < 4; ++i) {
+      display.limb_targets[i] = simple_pos;
+      walk.limb_targets[i] = simple_pos;
+   }
+
+   // Get transforms of each skeleton point
+   Transform root;
+   found = mPointsBaseSkeleton.GetJointIndex("points", jointIndex);
+   if (found) { root = mPointsBaseSkeleton.GetBindPose().GetGlobalTransform(jointIndex); }
+   Transform neck;
+   found = mPointsBaseSkeleton.GetJointIndex("neck", jointIndex);
+   if (found) { neck = mPointsBaseSkeleton.GetBindPose().GetGlobalTransform(jointIndex); }
+   Transform stomach;
+   found = mPointsBaseSkeleton.GetJointIndex("stomach", jointIndex);
+   if (found) { stomach = mPointsBaseSkeleton.GetBindPose().GetGlobalTransform(jointIndex); }
+   Transform pelvis;
+   found = mPointsBaseSkeleton.GetJointIndex("pelvis", jointIndex);
+   if (found) { pelvis = mPointsBaseSkeleton.GetBindPose().GetGlobalTransform(jointIndex); }
+   Transform groin;
+   found = mPointsBaseSkeleton.GetJointIndex("groin", jointIndex);
+   if (found) { groin = mPointsBaseSkeleton.GetBindPose().GetGlobalTransform(jointIndex); }
+   Transform head;
+   found = mPointsBaseSkeleton.GetJointIndex("head", jointIndex);
+   if (found) { head = mPointsBaseSkeleton.GetBindPose().GetGlobalTransform(jointIndex); }
+   Transform shoulder;
+   found = mPointsBaseSkeleton.GetJointIndex("shoulder", jointIndex);
+   if (found) { shoulder = mPointsBaseSkeleton.GetBindPose().GetGlobalTransform(jointIndex); }
+   Transform elbow;
+   found = mPointsBaseSkeleton.GetJointIndex("elbow", jointIndex);
+   if (found) { elbow = mPointsBaseSkeleton.GetBindPose().GetGlobalTransform(jointIndex); }
+   Transform grip;
+   found = mPointsBaseSkeleton.GetJointIndex("grip", jointIndex);
+   if (found) { grip = mPointsBaseSkeleton.GetBindPose().GetGlobalTransform(jointIndex); }
+   Transform hip;
+   found = mPointsBaseSkeleton.GetJointIndex("hip", jointIndex);
+   if (found) { hip = mPointsBaseSkeleton.GetBindPose().GetGlobalTransform(jointIndex); }
+   Transform knee;
+   found = mPointsBaseSkeleton.GetJointIndex("knee", jointIndex);
+   if (found) { knee = mPointsBaseSkeleton.GetBindPose().GetGlobalTransform(jointIndex); }
+   Transform foot;
+   found = mPointsBaseSkeleton.GetJointIndex("foot", jointIndex);
+   if (found) { foot = mPointsBaseSkeleton.GetBindPose().GetGlobalTransform(jointIndex); }
+
+   // Set up bind poses for each bone
+   found = mBaseSkeleton.GetJointIndex("DEF-head", jointIndex);
+   if (found) { display_body.head.Bind(mBaseSkeleton.GetBindPose().GetGlobalTransform(jointIndex)); }
+   found = mBaseSkeleton.GetJointIndex("DEF-chest", jointIndex);
+   if (found) { display_body.chest.Bind(mBaseSkeleton.GetBindPose().GetGlobalTransform(jointIndex)); }
+   found = mBaseSkeleton.GetJointIndex("DEF-belly", jointIndex);
+   if (found) { display_body.belly.Bind(mBaseSkeleton.GetBindPose().GetGlobalTransform(jointIndex)); }
+   found = mBaseSkeleton.GetJointIndex("DEF-pelvis", jointIndex);
+   if (found) { display_body.pelvis.Bind(mBaseSkeleton.GetBindPose().GetGlobalTransform(jointIndex)); }
+   found = mBaseSkeleton.GetJointIndex("DEF-upper_arm_L", jointIndex);
+   if (found) { display_body.arm_top_l.Bind(mBaseSkeleton.GetBindPose().GetGlobalTransform(jointIndex)); }
+   found = mBaseSkeleton.GetJointIndex("DEF-forearm_L", jointIndex);
+   if (found) { display_body.arm_bottom_l.Bind(mBaseSkeleton.GetBindPose().GetGlobalTransform(jointIndex)); }
+   found = mBaseSkeleton.GetJointIndex("DEF-upper_arm_R", jointIndex);
+   if (found) { display_body.arm_top_r.Bind(mBaseSkeleton.GetBindPose().GetGlobalTransform(jointIndex)); }
+   found = mBaseSkeleton.GetJointIndex("DEF-forearm_R", jointIndex);
+   if (found) { display_body.arm_bottom_r.Bind(mBaseSkeleton.GetBindPose().GetGlobalTransform(jointIndex)); }
+   found = mBaseSkeleton.GetJointIndex("DEF-thigh_L", jointIndex);
+   if (found) { display_body.leg_top_l.Bind(mBaseSkeleton.GetBindPose().GetGlobalTransform(jointIndex)); }
+   found = mBaseSkeleton.GetJointIndex("DEF-shin_L", jointIndex);
+   if (found) { display_body.leg_bottom_l.Bind(mBaseSkeleton.GetBindPose().GetGlobalTransform(jointIndex)); }
+   found = mBaseSkeleton.GetJointIndex("DEF-thigh_R", jointIndex);
+   if (found) { display_body.leg_top_r.Bind(mBaseSkeleton.GetBindPose().GetGlobalTransform(jointIndex)); }
+   found = mBaseSkeleton.GetJointIndex("DEF-shin_R", jointIndex);
+   if (found) { display_body.leg_bottom_r.Bind(mBaseSkeleton.GetBindPose().GetGlobalTransform(jointIndex)); }
+
+   // Adjust elbow to match arm transform
+   elbow.position = display_body.arm_bottom_r.transform.position;
+
+   // Set up initial IK poses (just used to get bone lengths later)
+   arm_ik[0] = shoulder.position;
+   arm_ik[1] = elbow.position;
+   arm_ik[2] = grip.position;
+
+   leg_ik[0] = hip.position;
+   leg_ik[1] = display_body.leg_bottom_r.transform.position;
+   leg_ik[2] = foot.position;
+
+   float measured_arm_length = glm::distance(shoulder.position, elbow.position) + glm::distance(elbow.position, grip.position);
+
+   // Set up movement system particles and bones
+   for (int i = 0; i < 2; ++i) {
+      VerletSystem* new_simple_rig;
+      switch (i) {
+      case 0:  new_simple_rig = &(display.simple_rig); break;
+      default: new_simple_rig = &(walk.simple_rig); break;
+      }
+
+      new_simple_rig->AddPoint(shoulder.position, "shoulder_r");
+      new_simple_rig->AddPoint(grip.position, "hand_r");
+      new_simple_rig->AddPoint((shoulder.position + glm::vec3(1.0f, 0.0f, 0.0f) * (neck.position[0] - shoulder.position[0]) * 2.0f), "shoulder_l");
+      new_simple_rig->AddPoint((grip.position + glm::vec3(1.0f, 0.0f, 0.0f) * (neck.position[0] - grip.position[0]) * 2.0f), "hand_l");
+      new_simple_rig->AddPoint(glm::vec3(neck.position[0], hip.position[1], neck.position[2]), "body");
+      new_simple_rig->mPoints[0].mass = 2.0f;
+      new_simple_rig->mPoints[2].mass = 2.0f;
+      new_simple_rig->mPoints[4].mass = 4.0f;
+
+      new_simple_rig->AddBone(0, 1, "arm_r");
+      new_simple_rig->mBones[new_simple_rig->mBones.size() - 1].length[1] = measured_arm_length; // Max length
+      new_simple_rig->mBones[new_simple_rig->mBones.size() - 1].length[0] *= 0.4f; // Min lenght - Allow arm to flex
+      new_simple_rig->AddBone(2, 3, "arm_l");
+      new_simple_rig->mBones[new_simple_rig->mBones.size() - 1].length[1] = measured_arm_length;
+      new_simple_rig->mBones[new_simple_rig->mBones.size() - 1].length[0] *= 0.4f;
+      new_simple_rig->AddBone(0, 2, "tri_top");
+      new_simple_rig->AddBone(0, 4, "tri_r");
+      new_simple_rig->AddBone(2, 4, "tri_l");
+   }
+
+   // Set up full-body IK particles and bones
+   complete.AddPoint(shoulder.position, "shoulder_r");
+   complete.AddPoint(grip.position, "hand_r");
+   complete.AddPoint((shoulder.position + glm::vec3(1.0f, 0.0f, 0.0f) * (neck.position[0] - shoulder.position[0]) * 2.0f), "shoulder_l");
+   complete.AddPoint((grip.position + glm::vec3(1.0f, 0.0f, 0.0f) * (neck.position[0] - grip.position[0]) * 2.0f), "hand_l");
+   complete.AddPoint(glm::vec3(neck.position[0], hip.position[1], neck.position[2]), "body");
+   complete.AddPoint(head.position, "head");
+   complete.AddPoint(neck.position, "neck");
+   complete.AddPoint(stomach.position, "stomach"); // 7
+   complete.AddPoint(pelvis.position, "hip"); // 8
+   complete.AddPoint(groin.position, "groin");
+   complete.AddPoint(hip.position, "hip_r");
+   complete.AddPoint(foot.position, "foot_r");
+   complete.AddPoint(hip.position + glm::vec3(1.0f, 0.0f, 0.0f) * (neck.position[0] - hip.position[0]) * 2.0f, "hip_l");
+   complete.AddPoint(foot.position + glm::vec3(1.0f, 0.0f, 0.0f) * (neck.position[0] - foot.position[0]) * 2.0f, "foot_l");
+
+   complete.AddBone(0, 1, "arm_r");
+   complete.mBones[complete.mBones.size() - 1].length[1] = measured_arm_length;
+   complete.mBones[complete.mBones.size() - 1].length[0] *= 0.4f;
+   complete.AddBone(2, 3, "arm_l");
+   complete.mBones[complete.mBones.size() - 1].length[1] = measured_arm_length;
+   complete.mBones[complete.mBones.size() - 1].length[0] *= 0.4f;
+   complete.AddBone(5, 6, "head");
+   complete.AddBone(6, 7, "chest");
+   complete.AddBone(7, 8, "belly");
+   complete.AddBone(8, 9, "pelvis");
+   complete.AddBone(10, 11, "leg_r");
+   complete.mBones[complete.mBones.size() - 1].length[0] *= 0.4f;
+   complete.AddBone(12, 13, "leg_l");
+   complete.mBones[complete.mBones.size() - 1].length[0] *= 0.4f;
+
+   // Create random branch 'terrain'
+   srand(static_cast<unsigned>(glfwGetTime()));
+
+   int num_segments = 40;
+   float x = 0;
+   float y = 0;
+   for (int i = 0; i < num_segments + 1; ++i) {
+      branches.AddPoint(glm::vec3(x, y, 0), "branch");
+      x += 2.0f + static_cast <float> (rand()) / (static_cast <float> (RAND_MAX / (6.0f - 2.0f)));
+      y += -3.0f + static_cast <float> (rand()) / (static_cast <float> (RAND_MAX / (3.0f - -3.0f)));
+      y = glm::clamp(y, -2.5f, 2.5f); // Make sure we stay on screen
+   }
+   for (int i = 0; i < num_segments; ++i) {
+      branches.AddBone(i, i + 1, "branch");
+   }
 }
 
 void AnimatedCharacter::load(const std::shared_ptr<Shader>& staticMeshWithoutUVsShader)
@@ -124,6 +290,7 @@ void AnimatedCharacter::render(const std::shared_ptr<Shader>& staticMeshWithoutU
    }
 
    // Loop over the points meshes and render each one
+   /*
    for (unsigned int i = 0,
         size = static_cast<unsigned int>(mPointsMeshes.size());
         i < size;
@@ -139,6 +306,7 @@ void AnimatedCharacter::render(const std::shared_ptr<Shader>& staticMeshWithoutU
 
       mPointsMeshes[i].Render();
    }
+   */
 
    staticMeshWithoutUVsShader->use(false);
 }

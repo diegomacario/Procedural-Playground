@@ -19,6 +19,7 @@ public:
    std::vector<glm::mat4>&   GetInvBindPose();
    std::vector<std::string>& GetJointNames();
    std::string&              GetJointName(unsigned int jointIndex);
+   bool                      GetJointIndex(const std::string& jointName, unsigned int& outJointIndex);
 
 protected:
 
