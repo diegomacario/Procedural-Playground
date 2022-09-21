@@ -391,8 +391,8 @@ void AnimatedCharacter::ApplyBound(DisplayBone& part, const glm::vec3& forward, 
    // TODO: The quaternion magic below might not work properly with Q::quat
 
    // Apply rotations
-   Q::quat rotation = Q::lookRotation(up, forward) * Q::inverse(Q::lookRotation(bind_up, bind_forward));
-   part.transform.rotation = rotation * part.bind_rot;
+   Q::quat rotation = Q::inverse(Q::lookRotation(bind_up, bind_forward)) * Q::lookRotation(up, forward);
+   part.transform.rotation = part.bind_rot * rotation;
    part.transform.position = mid + (rotation * (part.bind_pos - bind_mid));
 }
 
@@ -526,7 +526,7 @@ void AnimatedCharacter::Update()
          glm::vec3 old_axis = glm::normalize(glm::cross((end.bindPos + start.bindPos) * 0.5f - bind_elbow_point, start.bindPos - end.bindPos));
          glm::vec3 axis = glm::normalize(glm::cross((end.currPos + start.currPos) * 0.5f - elbow_point, start.currPos - end.currPos));
 
-         ApplyTwoBoneIK(start_id, end_id, forward, arm_ik, top, bottom, complete.mPoints, old_axis, axis);
+         //ApplyTwoBoneIK(start_id, end_id, forward, arm_ik, top, bottom, complete.mPoints, old_axis, axis);
       }
 
       // Leg IK
@@ -555,7 +555,7 @@ void AnimatedCharacter::Update()
          glm::vec3 old_axis = bind_rotation * glm::vec3(1.0f, 0.0f, 0.0f);
          glm::vec3 axis = rotation * glm::vec3(1.0f, 0.0f, 0.0f);
 
-         ApplyTwoBoneIK(start, end, leg_forward, leg_ik, top, bottom, complete.mPoints, old_axis, axis);
+         //ApplyTwoBoneIK(start, end, leg_forward, leg_ik, top, bottom, complete.mPoints, old_axis, axis);
       }
 
       // Head look            
@@ -647,10 +647,10 @@ void AnimatedCharacter::Step(float step, const std::shared_ptr<Window>& window)
    float horz_input = 0.0f;
    float vert_input = 0.0f;
    if (window->keyIsPressed(GLFW_KEY_D)) {
-      horz_input = 1.0f;
+      horz_input = -1.0f;
    }
    if (window->keyIsPressed(GLFW_KEY_A)) {
-      horz_input = -1.0f;
+      horz_input = 1.0f;
    }
 
    // Max speed of 7 m/s while running
