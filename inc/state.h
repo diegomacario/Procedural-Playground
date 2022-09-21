@@ -16,6 +16,7 @@ public:
 
    virtual void enter() = 0;
    virtual void processInput() = 0;
+   virtual void fixedUpdate() = 0;
    virtual void update(float deltaTime) = 0;
    virtual void render() = 0;
    virtual void exit() = 0;

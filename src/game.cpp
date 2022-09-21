@@ -46,7 +46,7 @@ void Game::executeGameLoop()
 {
    static double lastFrame = glfwGetTime();
    static double simulationTimeSeconds = 0.0;
-   static float fixedDelta = 1.0f / 60.0f;
+   static float fixedDelta = 1.0f / 50.0f;
 
    double currentFrame = glfwGetTime();
    float deltaTime     = static_cast<float>(currentFrame - lastFrame);
@@ -65,9 +65,11 @@ void Game::executeGameLoop()
 
    while (simulationTimeSeconds >= fixedDelta)
    {
-      mFSM->updateCurrentState(fixedDelta);
+      mFSM->fixedUpdateCurrentState();
       simulationTimeSeconds -= fixedDelta;
    }
+
+   mFSM->updateCurrentState(fixedDelta);
 
    mFSM->renderCurrentState();
 }
@@ -75,7 +77,7 @@ void Game::executeGameLoop()
 void Game::executeGameLoop()
 {
    double simulationTimeSeconds = 0.0;
-   const float fixedDelta = 1.0f / 60.0f;
+   const float fixedDelta = 1.0f / 50.0f;
 
    double currentFrame = 0.0;
    double lastFrame    = glfwGetTime();
@@ -90,10 +92,13 @@ void Game::executeGameLoop()
 
       mFSM->processInputInCurrentState();
 
-      while (simulationTimeSeconds >= fixedDelta) {
-         mFSM->updateCurrentState(fixedDelta);
+      while (simulationTimeSeconds >= fixedDelta)
+      {
+         mFSM->fixedUpdateCurrentState();
          simulationTimeSeconds -= fixedDelta;
       }
+
+      mFSM->updateCurrentState(fixedDelta);
 
       mFSM->renderCurrentState();
    }

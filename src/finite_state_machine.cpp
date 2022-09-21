@@ -27,6 +27,11 @@ void FiniteStateMachine::processInputInCurrentState() const
    mCurrentState->processInput();
 }
 
+void FiniteStateMachine::fixedUpdateCurrentState() const
+{
+   mCurrentState->fixedUpdate();
+}
+
 void FiniteStateMachine::updateCurrentState(float deltaTime) const
 {
    mCurrentState->update(deltaTime);

@@ -13,12 +13,14 @@ struct DisplayBone
    Transform transform;
    Q::quat bind_rot;
    glm::vec3 bind_pos;
+   unsigned int joint_index;
 
-   void Bind(Transform bindTransform)
+   void Bind(Transform bindTransform, unsigned int jointIndex)
    {
       transform = bindTransform;
       bind_pos = bindTransform.position;
       bind_rot = bindTransform.rotation;
+      joint_index = jointIndex;
    }
 };
 
@@ -59,7 +61,15 @@ public:
 
    void      initialize(const std::shared_ptr<Shader>& staticMeshWithoutUVsShader);
 
+   // Apply actual controls and physics
+   void      Step(float step, const std::shared_ptr<Window>& window);
+
+   // Prepare to draw next frame
+   void      Update();
+
    void      render(const std::shared_ptr<Shader>& staticMeshWithoutUVsShader, const glm::mat4& viewMatrix, const glm::mat4& perspectiveProjectionMatrix);
+
+   glm::vec3 getPosition() const { return simple_pos; }
 
 private:
 
@@ -91,17 +101,11 @@ private:
    // Get height of entire branch terrain at given x coordinate
    float BranchesHeight(float x);
 
-   // Prepare to draw next frame
-   void Update();
-
    float MoveTowards(float a, float b, float max_dist);
 
    glm::vec3 MoveTowards(const glm::vec3& a, const glm::vec3& b, float max_dist);
 
    void PreventHandsFromCrossingBody(VerletSystem& rig);
-
-   // Apply actual controls and physics
-   void Step(float step, const std::shared_ptr<Window>& window);
 
    // ---
 
@@ -112,6 +116,8 @@ private:
    Skeleton                  mPointsBaseSkeleton;
    std::vector<AnimatedMesh> mPointsMeshes;
    std::vector<glm::vec3>    mPointsBaseColors;
+
+   Pose                      mCurrentPose;
 
    // ---
 

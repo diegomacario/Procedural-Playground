@@ -118,6 +118,15 @@ void PlayState::update(float deltaTime)
       return;
    }
 #endif
+
+   mAnimatedCharacter.Update();
+
+   mCamera3.processPlayerMovement(mAnimatedCharacter.getPosition(), Q::quat());
+}
+
+void PlayState::fixedUpdate()
+{
+   mAnimatedCharacter.Step(1.0f / 50.0f, mWindow);
 }
 
 void PlayState::render()

@@ -27,6 +27,7 @@ public:
 
    void enter() override;
    void processInput() override;
+   void fixedUpdate() override;
    void update(float deltaTime) override;
    void render() override;
    void exit() override;

@@ -22,6 +22,7 @@ public:
    void                   initialize(std::unordered_map<std::string, std::shared_ptr<State>>&& states,
                                      const std::string&                                        initialStateID);
    void                   processInputInCurrentState() const;
+   void                   fixedUpdateCurrentState() const;
    void                   updateCurrentState(float deltaTime) const;
    void                   renderCurrentState() const;
    void                   changeState(const std::string& newStateID);

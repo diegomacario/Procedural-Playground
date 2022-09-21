@@ -102,29 +102,29 @@ void AnimatedCharacter::initialize(const std::shared_ptr<Shader>& staticMeshWith
 
    // Set up bind poses for each bone
    found = mBaseSkeleton.GetJointIndex("DEF-head", jointIndex);
-   if (found) { display_body.head.Bind(mBaseSkeleton.GetBindPose().GetGlobalTransform(jointIndex)); }
+   if (found) { display_body.head.Bind(mBaseSkeleton.GetBindPose().GetGlobalTransform(jointIndex), jointIndex); }
    found = mBaseSkeleton.GetJointIndex("DEF-chest", jointIndex);
-   if (found) { display_body.chest.Bind(mBaseSkeleton.GetBindPose().GetGlobalTransform(jointIndex)); }
+   if (found) { display_body.chest.Bind(mBaseSkeleton.GetBindPose().GetGlobalTransform(jointIndex), jointIndex); }
    found = mBaseSkeleton.GetJointIndex("DEF-belly", jointIndex);
-   if (found) { display_body.belly.Bind(mBaseSkeleton.GetBindPose().GetGlobalTransform(jointIndex)); }
+   if (found) { display_body.belly.Bind(mBaseSkeleton.GetBindPose().GetGlobalTransform(jointIndex), jointIndex); }
    found = mBaseSkeleton.GetJointIndex("DEF-pelvis", jointIndex);
-   if (found) { display_body.pelvis.Bind(mBaseSkeleton.GetBindPose().GetGlobalTransform(jointIndex)); }
+   if (found) { display_body.pelvis.Bind(mBaseSkeleton.GetBindPose().GetGlobalTransform(jointIndex), jointIndex); }
    found = mBaseSkeleton.GetJointIndex("DEF-upper_arm_L", jointIndex);
-   if (found) { display_body.arm_top_l.Bind(mBaseSkeleton.GetBindPose().GetGlobalTransform(jointIndex)); }
+   if (found) { display_body.arm_top_l.Bind(mBaseSkeleton.GetBindPose().GetGlobalTransform(jointIndex), jointIndex); }
    found = mBaseSkeleton.GetJointIndex("DEF-forearm_L", jointIndex);
-   if (found) { display_body.arm_bottom_l.Bind(mBaseSkeleton.GetBindPose().GetGlobalTransform(jointIndex)); }
+   if (found) { display_body.arm_bottom_l.Bind(mBaseSkeleton.GetBindPose().GetGlobalTransform(jointIndex), jointIndex); }
    found = mBaseSkeleton.GetJointIndex("DEF-upper_arm_R", jointIndex);
-   if (found) { display_body.arm_top_r.Bind(mBaseSkeleton.GetBindPose().GetGlobalTransform(jointIndex)); }
+   if (found) { display_body.arm_top_r.Bind(mBaseSkeleton.GetBindPose().GetGlobalTransform(jointIndex), jointIndex); }
    found = mBaseSkeleton.GetJointIndex("DEF-forearm_R", jointIndex);
-   if (found) { display_body.arm_bottom_r.Bind(mBaseSkeleton.GetBindPose().GetGlobalTransform(jointIndex)); }
+   if (found) { display_body.arm_bottom_r.Bind(mBaseSkeleton.GetBindPose().GetGlobalTransform(jointIndex), jointIndex); }
    found = mBaseSkeleton.GetJointIndex("DEF-thigh_L", jointIndex);
-   if (found) { display_body.leg_top_l.Bind(mBaseSkeleton.GetBindPose().GetGlobalTransform(jointIndex)); }
+   if (found) { display_body.leg_top_l.Bind(mBaseSkeleton.GetBindPose().GetGlobalTransform(jointIndex), jointIndex); }
    found = mBaseSkeleton.GetJointIndex("DEF-shin_L", jointIndex);
-   if (found) { display_body.leg_bottom_l.Bind(mBaseSkeleton.GetBindPose().GetGlobalTransform(jointIndex)); }
+   if (found) { display_body.leg_bottom_l.Bind(mBaseSkeleton.GetBindPose().GetGlobalTransform(jointIndex), jointIndex); }
    found = mBaseSkeleton.GetJointIndex("DEF-thigh_R", jointIndex);
-   if (found) { display_body.leg_top_r.Bind(mBaseSkeleton.GetBindPose().GetGlobalTransform(jointIndex)); }
+   if (found) { display_body.leg_top_r.Bind(mBaseSkeleton.GetBindPose().GetGlobalTransform(jointIndex), jointIndex); }
    found = mBaseSkeleton.GetJointIndex("DEF-shin_R", jointIndex);
-   if (found) { display_body.leg_bottom_r.Bind(mBaseSkeleton.GetBindPose().GetGlobalTransform(jointIndex)); }
+   if (found) { display_body.leg_bottom_r.Bind(mBaseSkeleton.GetBindPose().GetGlobalTransform(jointIndex), jointIndex); }
 
    // Adjust elbow to match arm transform
    elbow.position = display_body.arm_bottom_r.transform.position;
@@ -208,12 +208,15 @@ void AnimatedCharacter::initialize(const std::shared_ptr<Shader>& staticMeshWith
    for (int i = 0; i < num_segments + 1; ++i) {
       branches.AddPoint(glm::vec3(x, y, 0), "branch");
       x += 2.0f + static_cast <float> (rand()) / (static_cast <float> (RAND_MAX / (6.0f - 2.0f)));
-      y += -3.0f + static_cast <float> (rand()) / (static_cast <float> (RAND_MAX / (3.0f - -3.0f)));
-      y = glm::clamp(y, -2.5f, 2.5f); // Make sure we stay on screen
+      //y += -3.0f + static_cast <float> (rand()) / (static_cast <float> (RAND_MAX / (3.0f - -3.0f)));
+      //y = glm::clamp(y, -2.5f, 2.5f); // Make sure we stay on screen
    }
    for (int i = 0; i < num_segments; ++i) {
       branches.AddBone(i, i + 1, "branch");
    }
+
+   // Set the initial pose
+   mCurrentPose = mBaseSkeleton.GetBindPose();
 }
 
 void AnimatedCharacter::load(const std::shared_ptr<Shader>& staticMeshWithoutUVsShader)
@@ -282,7 +285,7 @@ void AnimatedCharacter::render(const std::shared_ptr<Shader>& staticMeshWithoutU
       ++i)
    {
       unsigned int nodeIndex = mMeshes[i].GetNodeIndex();
-      Transform globalTransform = mBaseSkeleton.GetBindPose().GetGlobalTransform(nodeIndex);
+      Transform globalTransform = mCurrentPose.GetGlobalTransform(nodeIndex);
       staticMeshWithoutUVsShader->setUniformMat4("model", transformToMat4(globalTransform));
       staticMeshWithoutUVsShader->setUniformVec3("baseColor", mBaseColors[i]);
 
@@ -577,6 +580,26 @@ void AnimatedCharacter::Update()
          display_body.head.transform.position = display_body.head.transform.position + ((transformVector(display_body.head.transform, glm::vec3(1.0f, 0.0f, 0.0f))) * head_look_y * -0.001f);
       }
    }
+
+   // Update the pose
+
+   unsigned int jointIndex = 0;
+   bool found = mBaseSkeleton.GetJointIndex("display_gibbon", jointIndex);
+   Transform inverseBaseTransform;
+   if (found) { inverseBaseTransform = inverse(mBaseSkeleton.GetBindPose().GetGlobalTransform(jointIndex)); }
+
+   mCurrentPose.SetLocalTransform(display_body.chest.joint_index,        combine(inverseBaseTransform, display_body.chest.transform));
+   mCurrentPose.SetLocalTransform(display_body.arm_top_l.joint_index,    combine(inverseBaseTransform, display_body.arm_top_l.transform));
+   mCurrentPose.SetLocalTransform(display_body.arm_bottom_l.joint_index, combine(inverseBaseTransform, display_body.arm_bottom_l.transform));
+   mCurrentPose.SetLocalTransform(display_body.arm_top_r.joint_index,    combine(inverseBaseTransform, display_body.arm_top_r.transform));
+   mCurrentPose.SetLocalTransform(display_body.arm_bottom_r.joint_index, combine(inverseBaseTransform, display_body.arm_bottom_r.transform));
+   mCurrentPose.SetLocalTransform(display_body.head.joint_index,         combine(inverseBaseTransform, display_body.head.transform));
+   mCurrentPose.SetLocalTransform(display_body.belly.joint_index,        combine(inverseBaseTransform, display_body.belly.transform));
+   mCurrentPose.SetLocalTransform(display_body.pelvis.joint_index,       combine(inverseBaseTransform, display_body.pelvis.transform));
+   mCurrentPose.SetLocalTransform(display_body.leg_top_l.joint_index,    combine(inverseBaseTransform, display_body.leg_top_l.transform));
+   mCurrentPose.SetLocalTransform(display_body.leg_bottom_l.joint_index, combine(inverseBaseTransform, display_body.leg_bottom_l.transform));
+   mCurrentPose.SetLocalTransform(display_body.leg_top_r.joint_index,    combine(inverseBaseTransform, display_body.leg_top_r.transform));
+   mCurrentPose.SetLocalTransform(display_body.leg_bottom_r.joint_index, combine(inverseBaseTransform, display_body.leg_bottom_r.transform));
 }
 
 float AnimatedCharacter::MoveTowards(float a, float b, float max_dist)
