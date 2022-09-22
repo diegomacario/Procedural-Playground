@@ -7,6 +7,7 @@
 #include "AnimatedMesh.h"
 #include "VerletSystem.h"
 #include "Window.h"
+#include "Line.h"
 
 struct DisplayBone
 {
@@ -180,6 +181,9 @@ private:
    float quad_gallop_body_compress_amount = 0.15f;
 
    // ---
+
+   std::shared_ptr<Shader> mLineShader;
+   std::vector<Line>       mLines;
 };
 
 #endif
