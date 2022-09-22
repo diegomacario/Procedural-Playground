@@ -108,6 +108,8 @@ void PlayState::processInput()
       mPause = !mPause;
    }
 #endif
+
+   mAnimatedCharacter.clearLines();
 }
 
 void PlayState::update(float deltaTime)

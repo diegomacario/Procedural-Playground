@@ -72,6 +72,8 @@ public:
 
    glm::vec3 getPosition() const { return simple_pos; }
 
+   void      clearLines() { mLines.clear(); }
+
 private:
 
    void      load(const std::shared_ptr<Shader>& staticMeshWithoutUVsShader);
