@@ -655,10 +655,10 @@ void AnimatedCharacter::Step(float step, const std::shared_ptr<Window>& window)
    float horz_input = 0.0f;
    float vert_input = 0.0f;
    if (window->keyIsPressed(GLFW_KEY_D)) {
-      horz_input = -1.0f;
+      horz_input = 1.0f;
    }
    if (window->keyIsPressed(GLFW_KEY_A)) {
-      horz_input = 1.0f;
+      horz_input = -1.0f;
    }
 
    // Max speed of 7 m/s while running
@@ -670,13 +670,13 @@ void AnimatedCharacter::Step(float step, const std::shared_ptr<Window>& window)
 
    // Don't allow speed < 1.0 m/s, don't need to worry about idle animations in an endless runner
    if (horz_input == 0.0f && glm::abs(simple_vel[0]) < 1.0f) {
-      simple_vel[0] = MoveTowards(simple_vel[0], simple_vel[0] <= 0.0f ? -1.0f : 1.0f, step);
+      simple_vel[0] = MoveTowards(simple_vel[0], simple_vel[0] >= 0.0f ? 1.0f : -1.0f, step);
    }
 
    // Smooth out position on branch by checking height forwards and back
-   glm::vec3 future_pos = simple_pos + simple_vel * 0.1f;
+   glm::vec3 future_pos = simple_pos + simple_vel * -0.1f;
    future_pos[1] = BranchesHeight(future_pos[0]);
-   glm::vec3 past_pos = simple_pos + simple_vel * -0.1f;
+   glm::vec3 past_pos = simple_pos + simple_vel * 0.1f;
    past_pos[1] = BranchesHeight(past_pos[0]);
    glm::vec3 smoothed_pos = (future_pos + past_pos + simple_pos) / 3.0f;
 
@@ -686,14 +686,13 @@ void AnimatedCharacter::Step(float step, const std::shared_ptr<Window>& window)
 
    // Apply modified running speed to position
    glm::vec3 effective_vel = simple_vel * slope_speed_mult;
-   simple_pos += effective_vel * step;
+   simple_pos += effective_vel * step * -1.0f;
 
    simple_pos[1] = BranchesHeight(simple_pos[0]);
    simple_vel[1] = 0.0f;
 
    // If on ground, look in the direction you are moving
    glm::vec3 forward = glm::normalize(glm::cross(display.simple_rig.mPoints[4].currPos - display.simple_rig.mPoints[0].currPos, display.simple_rig.mPoints[2].currPos - display.simple_rig.mPoints[0].currPos));
-   look_target[2] += forward[2];
    look_target = display_body.head.transform.position + forward * 0.1f;
    look_target += future_pos - past_pos;
 
@@ -738,8 +737,8 @@ void AnimatedCharacter::Step(float step, const std::shared_ptr<Window>& window)
       target_com[1]  = glm::mix(target_com[1], smoothed_pos[1], 0.0f);
 
       // Get ground slope again for use later
-      glm::vec3 left = simple_pos - glm::vec3(0.1f, 0.0f, 0.0f);
-      glm::vec3 right = simple_pos + glm::vec3(0.1f, 0.0f, 0.0f);
+      glm::vec3 left = simple_pos + glm::vec3(0.1f, 0.0f, 0.0f);
+      glm::vec3 right = simple_pos - glm::vec3(0.1f, 0.0f, 0.0f);
       left[1] = BranchesHeight(left[0]);
       right[1] = BranchesHeight(right[0]);
       glm::vec3 move_dir = glm::normalize(right - left);
@@ -848,8 +847,6 @@ void AnimatedCharacter::Step(float step, const std::shared_ptr<Window>& window)
       }
       for (int i = 0; i < 4; ++i) {
          display.limb_targets[i] = walk.limb_targets[i];
-
-         mLines.emplace_back(display.limb_targets[i], display.limb_targets[i] + glm::vec3(0.1f, 0.0f, 0.0f), glm::vec3(0.0f), 0.0f, glm::vec3(0.0f, 1.0f, 0.0f), 1.0f, glm::vec3(1.0f, 0.0f, 0.0f));
       }
       body_compress_amount = walk.body_compress_amount;
    }
