@@ -7,6 +7,7 @@
 #include "AnimatedMesh.h"
 #include "VerletSystem.h"
 #include "Window.h"
+#include "Line.h"
 
 struct DisplayBone
 {
@@ -70,6 +71,8 @@ public:
    void      render(const std::shared_ptr<Shader>& staticMeshWithoutUVsShader, const glm::mat4& viewMatrix, const glm::mat4& perspectiveProjectionMatrix);
 
    glm::vec3 getPosition() const { return simple_pos; }
+
+   void      clearLines() { mLines.clear(); }
 
 private:
 
@@ -180,6 +183,9 @@ private:
    float quad_gallop_body_compress_amount = 0.15f;
 
    // ---
+
+   std::shared_ptr<Shader> mLineShader;
+   std::vector<Line>       mLines;
 };
 
 #endif

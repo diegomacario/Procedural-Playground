@@ -103,6 +103,9 @@
     <ClCompile Include="..\src\VerletSystem.cpp">
       <Filter>Procedural-Playground\Source Files\Base</Filter>
     </ClCompile>
+    <ClCompile Include="..\src\Line.cpp">
+      <Filter>Procedural-Playground\Source Files\Base</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\inc\finite_state_machine.h">
@@ -217,6 +220,9 @@
       <Filter>Procedural-Playground\Header Files\Base</Filter>
     </ClInclude>
     <ClInclude Include="..\inc\VerletSystem.h">
+      <Filter>Procedural-Playground\Header Files\Base</Filter>
+    </ClInclude>
+    <ClInclude Include="..\inc\Line.h">
       <Filter>Procedural-Playground\Header Files\Base</Filter>
     </ClInclude>
   </ItemGroup>
