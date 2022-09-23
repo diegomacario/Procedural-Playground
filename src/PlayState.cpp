@@ -121,7 +121,7 @@ void PlayState::update(float deltaTime)
 
    mAnimatedCharacter.Update();
 
-   mCamera3.processPlayerMovement(mAnimatedCharacter.getPosition(), Q::angleAxis(glm::radians(0.0f), glm::vec3(0.0f, 1.0f, 0.0f)));
+   mCamera3.processPlayerMovement(mAnimatedCharacter.getPosition(), Q::angleAxis(glm::radians(180.0f), glm::vec3(0.0f, 1.0f, 0.0f)));
 }
 
 void PlayState::fixedUpdate()
