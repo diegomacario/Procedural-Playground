@@ -12,6 +12,7 @@ include_directories("${CMAKE_SOURCE_DIR}/inc"
                     "${CMAKE_SOURCE_DIR}/dependencies/stb_image")
 
 set(project_headers
+    inc/AnimatedCharacter.h
     inc/AnimatedMesh.h
     inc/Camera3.h
     inc/Clip.h
@@ -20,7 +21,8 @@ set(project_headers
     inc/game.h
     inc/GLTFLoader.h
     inc/Interpolation.h
-    inc/ModelViewerState.h
+    inc/Line.h
+    inc/PlayState.h
     inc/Pose.h
     inc/quat.h
     inc/RearrangeBones.h
@@ -36,17 +38,20 @@ set(project_headers
     inc/TrackVisualizer.h
     inc/Transform.h
     inc/TransformTrack.h
+    inc/VerletSystem.h
     inc/window.h)
 
 set(project_sources
+    src/AnimatedCharacter.cpp
     src/AnimatedMesh.cpp
     src/Camera3.cpp
     src/Clip.cpp
     src/finite_state_machine.cpp
     src/game.cpp
     src/GLTFLoader.cpp
+    src/Line.cpp
     src/main.cpp
-    src/ModelViewerState.cpp
+    src/PlayState.cpp
     src/Pose.cpp
     src/quat.cpp
     src/RearrangeBones.cpp
@@ -60,6 +65,7 @@ set(project_sources
     src/TrackVisualizer.cpp
     src/Transform.cpp
     src/TransformTrack.cpp
+    src/VerletSystem.cpp
     src/window.cpp
     dependencies/cgltf/cgltf/cgltf.c
     dependencies/imgui/imgui/imgui.cpp
