@@ -207,7 +207,7 @@ void AnimatedCharacter::initialize(const std::shared_ptr<Shader>& staticMeshWith
    // Create random branch 'terrain'
    srand(static_cast<unsigned>(glfwGetTime()));
 
-   int num_segments = 40;
+   int num_segments = 80;
    float x = 0;
    float y = 0;
    for (int i = 0; i < num_segments + 1; ++i) {
