@@ -252,15 +252,15 @@ void PlayState::userInterface()
    snprintf(title, 64, "Procedural Playground (%.1f FPS)###ProceduralPlayground", ImGui::GetIO().Framerate);
    ImGui::Begin(title, nullptr, ImGuiWindowFlags_NoResize | ImGuiWindowFlags_AlwaysAutoResize);
 
-#ifdef __EMSCRIPTEN__
-   ImGui::Text("Click the button below to learn more about this\n"
-               "project:");
-
-   if (ImGui::Button("Open README"))
-   {
-      openReadme();
-   }
-#endif
+//#ifdef __EMSCRIPTEN__
+//   ImGui::Text("Click the button below to learn more about this\n"
+//               "project:");
+//
+//   if (ImGui::Button("Open README"))
+//   {
+//      openReadme();
+//   }
+//#endif
 
    if (ImGui::CollapsingHeader("Controls", nullptr, ImGuiTreeNodeFlags_DefaultOpen))
    {
