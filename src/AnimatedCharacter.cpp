@@ -410,8 +410,8 @@ void AnimatedCharacter::ApplyBound(DisplayBone& part, const glm::vec3& forward, 
    // TODO: The quaternion magic below might not work properly with Q::quat
 
    // Apply rotations
-   Q::quat rotation = Q::lookRotation(up, forward) * Q::inverse(Q::lookRotation(bind_up, bind_forward));
-   part.transform.rotation = rotation * part.bind_rot;
+   Q::quat rotation = Q::inverse(Q::lookRotation(bind_up, bind_forward)) * Q::lookRotation(up, forward);
+   part.transform.rotation = part.bind_rot * rotation;
    part.transform.position = mid + (rotation * (part.bind_pos - bind_mid));
 }
 
@@ -457,8 +457,8 @@ void AnimatedCharacter::Update()
       // Calculate midpoint and orientation of body triangle
       glm::vec3 bind_mid = (points[0].bindPos + points[2].bindPos + points[4].bindPos) / 3.0f;
       glm::vec3 mid = (points[0].currPos + points[2].currPos + points[4].currPos) / 3.0f;
-      glm::vec3 forward = glm::normalize(glm::cross(points[0].currPos - points[2].currPos, points[0].currPos - points[4].currPos));
-      glm::vec3 bind_forward = glm::normalize(glm::cross(points[0].bindPos - points[2].bindPos, points[0].bindPos - points[4].bindPos));
+      glm::vec3 forward = glm::normalize(glm::cross(points[4].currPos - points[0].currPos, points[2].currPos - points[0].currPos));
+      glm::vec3 bind_forward = glm::normalize(glm::cross(points[4].bindPos - points[0].bindPos, points[2].bindPos - points[0].bindPos));
       glm::vec3 up = glm::normalize((points[0].currPos + points[2].currPos) / 2.0f - points[4].currPos);
       glm::vec3 bind_up = glm::normalize((points[0].bindPos + points[2].bindPos) / 2.0f - points[4].bindPos);
 
@@ -470,7 +470,7 @@ void AnimatedCharacter::Update()
 
       // TODO: The quaternion magic below might not work properly with Q::quat
 
-      Q::quat body_rotation = Q::lookRotation(forward, up) * Q::inverse(Q::lookRotation(bind_forward, bind_up));
+      Q::quat body_rotation = Q::inverse(Q::lookRotation(bind_forward, bind_up)) * Q::lookRotation(forward, up);
 
       // Set up spine, head and leg positions based on body rotation
       for (int i = 5; i < 14; ++i) {
@@ -510,25 +510,21 @@ void AnimatedCharacter::Update()
       // Get torso orientation and position
       glm::vec3 bind_mid     = (points[0].bindPos + points[2].bindPos + points[9].bindPos) / 3.0f;
       glm::vec3 mid          = (points[0].currPos + points[2].currPos + points[9].currPos) / 3.0f;
-      glm::vec3 forward      = -glm::normalize(glm::cross(points[0].currPos - points[2].currPos, points[0].currPos - points[9].currPos));
-      glm::vec3 bind_forward = -glm::normalize(glm::cross(points[0].bindPos - points[2].bindPos, points[0].bindPos - points[9].bindPos));
+      glm::vec3 forward      = -glm::normalize(glm::cross(points[9].currPos - points[0].currPos, points[2].currPos - points[0].currPos));
+      glm::vec3 bind_forward = -glm::normalize(glm::cross(points[9].bindPos - points[0].bindPos, points[2].bindPos - points[0].bindPos));
       glm::vec3 up           = glm::normalize((points[0].currPos + points[2].currPos) / 2.0f - points[9].currPos);
       glm::vec3 bind_up      = glm::normalize((points[0].bindPos + points[2].bindPos) / 2.0f - points[9].bindPos);
 
       // Apply core bones
-      ApplyBound(display_body.head, forward, bind_forward, 5, 6);
-      ApplyBound(display_body.chest, forward, bind_forward, 6, 7);
-      ApplyBound(display_body.belly, forward, bind_forward, 7, 8);
-      ApplyBound(display_body.pelvis, forward, bind_forward, 8, 9);
+      ApplyBound(display_body.head, forward, bind_forward, 5, 6);   // Head to neck
+      ApplyBound(display_body.chest, forward, bind_forward, 6, 7);  // Neck to stomach
+      ApplyBound(display_body.belly, forward, bind_forward, 7, 8);  // Stomach to pelvis (hip)
+      ApplyBound(display_body.pelvis, forward, bind_forward, 8, 9); // Pelvis (hip) to groin
 
       // Arm IK
       for (int i = 0; i < 2; ++i) {
-         DisplayBone& top = display_body.arm_top_r;
-         DisplayBone& bottom = display_body.arm_bottom_r;
-         if (i == 1) {
-            top = display_body.arm_top_l;
-            bottom = display_body.arm_bottom_l;
-         }
+         DisplayBone& top = (i == 0) ? display_body.arm_top_r : display_body.arm_top_l;
+         DisplayBone& bottom = (i == 0) ? display_body.arm_bottom_r : display_body.arm_bottom_l;
 
          int start_id = i * 2;
          int end_id = i * 2 + 1;
@@ -545,17 +541,13 @@ void AnimatedCharacter::Update()
          glm::vec3 old_axis = glm::normalize(glm::cross((end.bindPos + start.bindPos) * 0.5f - bind_elbow_point, start.bindPos - end.bindPos));
          glm::vec3 axis = glm::normalize(glm::cross((end.currPos + start.currPos) * 0.5f - elbow_point, start.currPos - end.currPos));
 
-         ApplyTwoBoneIK(start_id, end_id, forward, arm_ik, top, bottom, complete.mPoints, old_axis, axis);
+         //ApplyTwoBoneIK(start_id, end_id, forward, arm_ik, top, bottom, complete.mPoints, old_axis, axis);
       }
 
       // Leg IK
       for (int i = 0; i < 2; ++i) {
-         DisplayBone& top = display_body.leg_top_r;
-         DisplayBone& bottom = display_body.leg_bottom_r;
-         if (i == 1) {
-            top = display_body.leg_top_l;
-            bottom = display_body.leg_bottom_l;
-         }
+         DisplayBone& top = (i == 0) ? display_body.leg_top_r : display_body.leg_top_l;
+         DisplayBone& bottom = (i == 0) ? display_body.leg_bottom_r : display_body.leg_bottom_l;
 
          int start = i * 2 + 10;
          int end = i * 2 + 1 + 10;
@@ -574,7 +566,7 @@ void AnimatedCharacter::Update()
          glm::vec3 old_axis = bind_rotation * glm::vec3(1.0f, 0.0f, 0.0f);
          glm::vec3 axis = rotation * glm::vec3(1.0f, 0.0f, 0.0f);
 
-         ApplyTwoBoneIK(start, end, leg_forward, leg_ik, top, bottom, complete.mPoints, old_axis, axis);
+         //ApplyTwoBoneIK(start, end, leg_forward, leg_ik, top, bottom, complete.mPoints, old_axis, axis);
       }
 
       // Head look            
@@ -666,10 +658,10 @@ void AnimatedCharacter::Step(float step, const std::shared_ptr<Window>& window)
    float horz_input = 0.0f;
    float vert_input = 0.0f;
    if (window->keyIsPressed(GLFW_KEY_D)) {
-      horz_input = 1.0f;
+      horz_input = -1.0f;
    }
    if (window->keyIsPressed(GLFW_KEY_A)) {
-      horz_input = -1.0f;
+      horz_input = 1.0f;
    }
 
    // Max speed of 7 m/s while running
@@ -681,7 +673,7 @@ void AnimatedCharacter::Step(float step, const std::shared_ptr<Window>& window)
 
    // Don't allow speed < 1.0 m/s, don't need to worry about idle animations in an endless runner
    if (horz_input == 0.0f && glm::abs(simple_vel[0]) < 1.0f) {
-      simple_vel[0] = MoveTowards(simple_vel[0], simple_vel[0] >= 0.0f ? 1.0f : -1.0f, step);
+      simple_vel[0] = MoveTowards(simple_vel[0], simple_vel[0] <= 0.0f ? -1.0f : 1.0f, step);
    }
 
    // Smooth out position on branch by checking height forwards and back
@@ -703,7 +695,7 @@ void AnimatedCharacter::Step(float step, const std::shared_ptr<Window>& window)
    simple_vel[1] = 0.0f;
 
    // If on ground, look in the direction you are moving
-   glm::vec3 forward = glm::normalize(glm::cross(display.simple_rig.mPoints[0].currPos - display.simple_rig.mPoints[2].currPos, display.simple_rig.mPoints[0].currPos - display.simple_rig.mPoints[4].currPos));
+   glm::vec3 forward = glm::normalize(glm::cross(display.simple_rig.mPoints[4].currPos - display.simple_rig.mPoints[0].currPos, display.simple_rig.mPoints[2].currPos - display.simple_rig.mPoints[0].currPos));
    look_target[2] += forward[2];
    look_target = display_body.head.transform.position + forward * 0.1f;
    look_target += future_pos - past_pos;
@@ -795,7 +787,7 @@ void AnimatedCharacter::Step(float step, const std::shared_ptr<Window>& window)
          // Apply torque to keep torso upright and forward-facing
          float step_sqrd = step * step;
          float force = 20.0f;
-         glm::vec3 forward2 = glm::normalize(glm::cross(rig.mPoints[0].currPos - rig.mPoints[2].currPos, rig.mPoints[0].currPos - rig.mPoints[4].currPos));
+         glm::vec3 forward2 = glm::normalize(glm::cross(rig.mPoints[4].currPos - rig.mPoints[0].currPos, rig.mPoints[2].currPos - rig.mPoints[0].currPos));
          glm::vec3 flat_forward = glm::normalize(glm::vec3(forward2[0], 0.0f, forward2[2]));
          glm::vec3 top_force = (lean * flat_forward + glm::vec3(0.0f, 1.0f, 0.0f)) * force;
          rig.mPoints[4].currPos += step_sqrd * -top_force;
