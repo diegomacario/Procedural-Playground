@@ -17,7 +17,7 @@ PlayState::PlayState(const std::shared_ptr<FiniteStateMachine>& finiteStateMachi
                      const std::shared_ptr<Window>&             window)
    : mFSM(finiteStateMachine)
    , mWindow(window)
-   , mCamera3(2.0f, 15.0f, glm::vec3(0.0f), Q::angleAxis(glm::radians(180.0f), glm::vec3(0.0f, 1.0f, 0.0f)), glm::vec3(0.0f, 0.5f, 0.0f), 0.0f, 20.0f, 0.0f, 90.0f, 45.0f, 1280.0f / 720.0f, 0.1f, 130.0f, 0.25f)
+   , mCamera3(4.0f, 15.0f, glm::vec3(0.0f), Q::angleAxis(glm::radians(180.0f), glm::vec3(0.0f, 1.0f, 0.0f)), glm::vec3(0.0f, 0.5f, 0.0f), 0.0f, 20.0f, 0.0f, 90.0f, 45.0f, 1280.0f / 720.0f, 0.1f, 130.0f, 0.25f)
 {
    mStaticMeshShader = ResourceManager<Shader>().loadUnmanagedResource<ShaderLoader>("resources/shaders/static_mesh.vert",
                                                                                      "resources/shaders/ambient_diffuse_illumination.frag");
@@ -109,7 +109,7 @@ void PlayState::processInput()
    }
 #endif
 
-   mAnimatedCharacter.clearLines();
+   //mAnimatedCharacter.clearLines();
 }
 
 void PlayState::update(float deltaTime)
@@ -124,6 +124,11 @@ void PlayState::update(float deltaTime)
    mAnimatedCharacter.Update();
 
    mCamera3.processPlayerMovement(mAnimatedCharacter.getPosition(), Q::angleAxis(glm::radians(180.0f), glm::vec3(0.0f, 1.0f, 0.0f)));
+
+   mStaticMeshWithoutUVsShader->use(true);
+   mStaticMeshWithoutUVsShader->setUniformVec3("pointLights[0].worldPos", glm::vec3(mAnimatedCharacter.getPosition().x, 2.0f, 10.0f));
+   mStaticMeshWithoutUVsShader->setUniformVec3("pointLights[1].worldPos", glm::vec3(mAnimatedCharacter.getPosition().x, 2.0f, -10.0f));
+   mStaticMeshWithoutUVsShader->use(false);
 }
 
 void PlayState::fixedUpdate()
@@ -146,6 +151,7 @@ void PlayState::render()
    glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
    glEnable(GL_DEPTH_TEST);
 
+   /*
    if (mDisplayGround)
    {
       mStaticMeshShader->use(true);
@@ -169,6 +175,7 @@ void PlayState::render()
       mGroundTexture->unbind(0);
       mStaticMeshShader->use(false);
    }
+   */
 
    mAnimatedCharacter.render(mStaticMeshWithoutUVsShader, mCamera3.getViewMatrix(), mCamera3.getPerspectiveProjectionMatrix());
 
@@ -260,18 +267,16 @@ void PlayState::userInterface()
       ImGui::BulletText("Hold the left mouse button and move the mouse\n"
                         "to rotate the camera around the character.");
       ImGui::BulletText("Use the scroll wheel to zoom in and out.");
-      ImGui::BulletText("Right click any graph to highlight the joint\n"
-                        "it belongs to.");
 #ifndef __EMSCRIPTEN__
       ImGui::BulletText("Press the P key to pause the animation.");
       ImGui::BulletText("Press the R key to reset the camera.");
 #endif
    }
 
-   if (ImGui::CollapsingHeader("Settings", nullptr, ImGuiTreeNodeFlags_DefaultOpen))
-   {
-      ImGui::Checkbox("Display Ground", &mDisplayGround);
-   }
+   //if (ImGui::CollapsingHeader("Settings", nullptr, ImGuiTreeNodeFlags_DefaultOpen))
+   //{
+   //   ImGui::Checkbox("Display Ground", &mDisplayGround);
+   //}
 
    ImGui::End();
 }
@@ -283,6 +288,6 @@ void PlayState::resetScene()
 
 void PlayState::resetCamera()
 {
-   mCamera3.reposition(2.0f, 15.0f, glm::vec3(0.0f, 0.0f, 0.0f), Q::angleAxis(glm::radians(180.0f), glm::vec3(0.0f, 1.0f, 0.0f)), glm::vec3(0.0f, 0.5f, 0.0f), 0.0f, 20.0f, 0.0f, 90.0f);
+   mCamera3.reposition(4.0f, 15.0f, glm::vec3(0.0f, 0.0f, 0.0f), Q::angleAxis(glm::radians(180.0f), glm::vec3(0.0f, 1.0f, 0.0f)), glm::vec3(0.0f, 0.5f, 0.0f), 0.0f, 20.0f, 0.0f, 90.0f);
    mCamera3.processMouseMovement(180.0f / 0.25f, 0.0f);
 }

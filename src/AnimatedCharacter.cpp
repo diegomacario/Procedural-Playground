@@ -212,12 +212,19 @@ void AnimatedCharacter::initialize(const std::shared_ptr<Shader>& staticMeshWith
    float y = 0;
    for (int i = 0; i < num_segments + 1; ++i) {
       branches.AddPoint(glm::vec3(x, y, 0), "branch");
-      x += 2.0f + static_cast <float> (rand()) / (static_cast <float> (RAND_MAX / (6.0f - 2.0f)));
-      //y += -3.0f + static_cast <float> (rand()) / (static_cast <float> (RAND_MAX / (3.0f - -3.0f)));
-      //y = glm::clamp(y, -2.5f, 2.5f); // Make sure we stay on screen
+      x -= 2.0f + static_cast <float> (rand()) / (static_cast <float> (RAND_MAX / (6.0f - 2.0f)));
+      y += -3.0f + static_cast <float> (rand()) / (static_cast <float> (RAND_MAX / (3.0f - -3.0f)));
+      y = glm::clamp(y, -2.5f, 2.5f); // Make sure we stay on screen
    }
    for (int i = 0; i < num_segments; ++i) {
       branches.AddBone(i, i + 1, "branch");
+      mLines.emplace_back(branches.mPoints[i].bindPos,
+                          branches.mPoints[i + 1].bindPos,
+                          glm::vec3(0.0f),
+                          0.0f,
+                          glm::vec3(0.0f, 1.0f, 0.0f),
+                          1.0f,
+                          glm::vec3(0.0f, 1.0f, 0.0f));
    }
 
    // Set the initial pose
@@ -427,14 +434,14 @@ float AnimatedCharacter::BranchesHeight(float x)
    for (int i = 0; i < branches.mBones.size(); ++i)
    {
       const glm::ivec2& point_ids = branches.mBones[i].pointIndices;
-      if (x >= branches.mPoints[point_ids[0]].currPos[0] && x < branches.mPoints[point_ids[1]].currPos[0])
+      if (x <= branches.mPoints[point_ids[0]].currPos[0] && x > branches.mPoints[point_ids[1]].currPos[0])
       {
          return BranchHeight(x, point_ids[0], point_ids[1]);
       }
    }
 
    // If not on terrain, extend horizontally forever
-   if (x < 0.0f)
+   if (x > 0.0f)
    {
       return branches.mPoints[0].currPos[1];
    }
