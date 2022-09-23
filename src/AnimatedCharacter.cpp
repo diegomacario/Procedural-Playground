@@ -504,8 +504,12 @@ void AnimatedCharacter::Update()
 
       // Arm IK
       for (int i = 0; i < 2; ++i) {
-         DisplayBone& top = (i == 0) ? display_body.arm_top_r : display_body.arm_top_l;
-         DisplayBone& bottom = (i == 0) ? display_body.arm_bottom_r : display_body.arm_bottom_l;
+         DisplayBone& top = display_body.arm_top_r;
+         DisplayBone& bottom = display_body.arm_bottom_r;
+         if (i == 1) {
+            top = display_body.arm_top_l;
+            bottom = display_body.arm_bottom_l;
+         }
 
          int start_id = i * 2;
          int end_id = i * 2 + 1;
@@ -527,8 +531,12 @@ void AnimatedCharacter::Update()
 
       // Leg IK
       for (int i = 0; i < 2; ++i) {
-         DisplayBone& top = (i == 0) ? display_body.leg_top_r : display_body.leg_top_l;
-         DisplayBone& bottom = (i == 0) ? display_body.leg_bottom_r : display_body.leg_bottom_l;
+         DisplayBone& top = display_body.leg_top_r;
+         DisplayBone& bottom = display_body.leg_bottom_r;
+         if (i == 1) {
+            top = display_body.leg_top_l;
+            bottom = display_body.leg_bottom_l;
+         }
 
          int start = i * 2 + 10;
          int end = i * 2 + 1 + 10;
@@ -639,10 +647,10 @@ void AnimatedCharacter::Step(float step, const std::shared_ptr<Window>& window)
    float horz_input = 0.0f;
    float vert_input = 0.0f;
    if (window->keyIsPressed(GLFW_KEY_D)) {
-      horz_input = 1.0f;
+      horz_input = -1.0f;
    }
    if (window->keyIsPressed(GLFW_KEY_A)) {
-      horz_input = -1.0f;
+      horz_input = 1.0f;
    }
 
    // Max speed of 7 m/s while running
