@@ -1,7 +1,5 @@
 # define M_PI           3.14159265358979323846  /* pi */
 
-#include "resource_manager.h"
-#include "shader_loader.h"
 #include "GLTFLoader.h"
 #include "RearrangeBones.h"
 #include "AnimatedCharacter.h"
@@ -40,17 +38,6 @@ AnimatedCharacter::AnimatedCharacter()
                          glm::vec3(1.0f, 0.0f, 0.0f),    // Belly
                          hexToColor(0x071A52),           // Right shoulder
                          glm::vec3(1.0f, 0.45f, 0.0f) }; // Chest
-
-   mLineShader = ResourceManager<Shader>().loadUnmanagedResource<ShaderLoader>("resources/shaders/line.vert",
-                                                                               "resources/shaders/line.frag");
-
-   mLines.emplace_back(glm::vec3(0.0f, 1.0f, 0.0f),
-                       glm::vec3(-1.0f, 1.0f, 0.0f),
-                       glm::vec3(0.0f),
-                       0.0f,
-                       glm::vec3(0.0f, 1.0f, 0.0f),
-                       1.0f,
-                       glm::vec3(1.0f, 0.0f, 0.0f));
 }
 
 AnimatedCharacter::~AnimatedCharacter()
@@ -325,20 +312,6 @@ void AnimatedCharacter::render(const std::shared_ptr<Shader>& staticMeshWithoutU
    */
 
    staticMeshWithoutUVsShader->use(false);
-
-   mLineShader->use(true);
-   mLineShader->setUniformMat4("projectionView", perspectiveProjectionMatrix * viewMatrix);
-
-   // Loop over the lines and render each one
-   for (unsigned int i = 0,
-        size = static_cast<unsigned int>(mLines.size());
-        i < size;
-        ++i)
-   {
-      mLines[i].render(mLineShader);
-   }
-
-   mLineShader->use(false);
 }
 
 glm::vec3 AnimatedCharacter::hexToColor(int hex)
