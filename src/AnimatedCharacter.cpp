@@ -383,19 +383,16 @@ void AnimatedCharacter::ApplyTwoBoneIK(int start_id,
    // TODO: The quaternion magic below might not work properly with Q::quat
 
    // Apply rotation of entire arm (shoulder->hand)
-   Q::quat base_rotation = Q::lookRotation(end.currPos - start.currPos, forward) *
-      Q::inverse(Q::lookRotation(end.bindPos - start.bindPos, glm::vec3(0.0f, 0.0f, 1.0f)));
+   Q::quat base_rotation = Q::inverse(Q::lookRotation(end.bindPos - start.bindPos, glm::vec3(0.0f, 0.0f, 1.0f))) * Q::lookRotation(end.currPos - start.currPos, forward);
    // Apply additional rotation from IK
-   base_rotation = Q::angleAxis(base_angle, axis) * base_rotation *
-      Q::inverse(Q::angleAxis(old_base_angle, old_axis));
+   base_rotation = Q::inverse(Q::angleAxis(old_base_angle, old_axis)) * base_rotation * Q::angleAxis(base_angle, axis);
 
    // Apply base and hinge rotations to actual display bones
    top.transform.position = top.bind_pos + (start.currPos - start.bindPos);
-   top.transform.rotation = base_rotation * top.bind_rot;
+   top.transform.rotation = top.bind_rot * base_rotation;
 
-   bottom.transform.position = top.transform.position + top.transform.rotation * Q::inverse(top.bind_rot) * (bottom.bind_pos - top.bind_pos);
-   bottom.transform.rotation = Q::angleAxis(hinge_angle, axis) * base_rotation *
-      Q::inverse(Q::angleAxis(old_hinge_angle, old_axis)) * bottom.bind_rot;
+   bottom.transform.position = top.transform.position + Q::inverse(top.bind_rot) * top.transform.rotation * (bottom.bind_pos - top.bind_pos);
+   bottom.transform.rotation = bottom.bind_rot * Q::inverse(Q::angleAxis(old_hinge_angle, old_axis)) * base_rotation * Q::angleAxis(hinge_angle, axis);
 }
 
 // Calculate bone transform that matches orientation of top and bottom points, and looks in the character "forward" direction
@@ -541,7 +538,7 @@ void AnimatedCharacter::Update()
          glm::vec3 old_axis = glm::normalize(glm::cross((end.bindPos + start.bindPos) * 0.5f - bind_elbow_point, start.bindPos - end.bindPos));
          glm::vec3 axis = glm::normalize(glm::cross((end.currPos + start.currPos) * 0.5f - elbow_point, start.currPos - end.currPos));
 
-         //ApplyTwoBoneIK(start_id, end_id, forward, arm_ik, top, bottom, complete.mPoints, old_axis, axis);
+         ApplyTwoBoneIK(start_id, end_id, forward, arm_ik, top, bottom, complete.mPoints, old_axis, axis);
       }
 
       // Leg IK
@@ -560,13 +557,13 @@ void AnimatedCharacter::Update()
 
          // Get base whole-leg rotation
          Q::quat bind_rotation = Q::lookRotation(points[end].bindPos - points[start].bindPos, glm::vec3(0.0f, 0.0f, 1.0f));
-         Q::quat rotation = Q::lookRotation(leg_dir, leg_forward) * bind_rotation;
+         Q::quat rotation = bind_rotation * Q::lookRotation(leg_dir, leg_forward);
 
          // Get knee bend axis
          glm::vec3 old_axis = bind_rotation * glm::vec3(1.0f, 0.0f, 0.0f);
          glm::vec3 axis = rotation * glm::vec3(1.0f, 0.0f, 0.0f);
 
-         //ApplyTwoBoneIK(start, end, leg_forward, leg_ik, top, bottom, complete.mPoints, old_axis, axis);
+         ApplyTwoBoneIK(start, end, leg_forward, leg_ik, top, bottom, complete.mPoints, old_axis, axis);
       }
 
       // Head look            
@@ -586,7 +583,7 @@ void AnimatedCharacter::Update()
       float head_look_x = glm::degrees(-glm::sin(temp.y));
       
       // Apply head transform
-      display_body.head.transform.rotation = display_body.head.transform.rotation * Q::angleAxis(glm::radians(head_look_x), glm::vec3(1.0f, 0.0f, 0.0f)) * Q::angleAxis(glm::radians(head_look_y), glm::vec3(0.0f, 1.0f, 0.0f));
+      display_body.head.transform.rotation = Q::angleAxis(glm::radians(head_look_y), glm::vec3(0.0f, 1.0f, 0.0f)) * Q::angleAxis(glm::radians(head_look_x), glm::vec3(1.0f, 0.0f, 0.0f)) * display_body.head.transform.rotation;
       if (head_look_y > 0.0f) {
          display_body.head.transform.position = display_body.head.transform.position + ((transformVector(display_body.head.transform, glm::vec3(1.0f, 0.0f, 0.0f))) * head_look_y * -0.001f);
       }
@@ -851,6 +848,8 @@ void AnimatedCharacter::Step(float step, const std::shared_ptr<Window>& window)
       }
       for (int i = 0; i < 4; ++i) {
          display.limb_targets[i] = walk.limb_targets[i];
+
+         mLines.emplace_back(display.limb_targets[i], display.limb_targets[i] + glm::vec3(0.1f, 0.0f, 0.0f), glm::vec3(0.0f), 0.0f, glm::vec3(0.0f, 1.0f, 0.0f), 1.0f, glm::vec3(1.0f, 0.0f, 0.0f));
       }
       body_compress_amount = walk.body_compress_amount;
    }
