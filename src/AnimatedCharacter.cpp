@@ -45,7 +45,7 @@ AnimatedCharacter::AnimatedCharacter()
                                                                                "resources/shaders/line.frag");
 
    mLines.emplace_back(glm::vec3(0.0f, 1.0f, 0.0f),
-                       glm::vec3(1.0f, 1.0f, 0.0f),
+                       glm::vec3(-1.0f, 1.0f, 0.0f),
                        glm::vec3(0.0f),
                        0.0f,
                        glm::vec3(0.0f, 1.0f, 0.0f),
@@ -462,8 +462,8 @@ void AnimatedCharacter::Update()
       // Calculate midpoint and orientation of body triangle
       glm::vec3 bind_mid = (points[0].bindPos + points[2].bindPos + points[4].bindPos) / 3.0f;
       glm::vec3 mid = (points[0].currPos + points[2].currPos + points[4].currPos) / 3.0f;
-      glm::vec3 forward = glm::normalize(glm::cross(points[4].currPos - points[0].currPos, points[2].currPos - points[0].currPos));
-      glm::vec3 bind_forward = glm::normalize(glm::cross(points[4].bindPos - points[0].bindPos, points[2].bindPos - points[0].bindPos));
+      glm::vec3 forward = glm::normalize(glm::cross(points[0].currPos - points[2].currPos, points[0].currPos - points[4].currPos));
+      glm::vec3 bind_forward = glm::normalize(glm::cross(points[0].bindPos - points[2].bindPos, points[0].bindPos - points[4].bindPos));
       glm::vec3 up = glm::normalize((points[0].currPos + points[2].currPos) / 2.0f - points[4].currPos);
       glm::vec3 bind_up = glm::normalize((points[0].bindPos + points[2].bindPos) / 2.0f - points[4].bindPos);
 
@@ -515,8 +515,8 @@ void AnimatedCharacter::Update()
       // Get torso orientation and position
       glm::vec3 bind_mid     = (points[0].bindPos + points[2].bindPos + points[9].bindPos) / 3.0f;
       glm::vec3 mid          = (points[0].currPos + points[2].currPos + points[9].currPos) / 3.0f;
-      glm::vec3 forward      = -glm::normalize(glm::cross(points[9].currPos - points[0].currPos, points[2].currPos - points[0].currPos));
-      glm::vec3 bind_forward = -glm::normalize(glm::cross(points[9].bindPos - points[0].bindPos, points[2].bindPos - points[0].bindPos));
+      glm::vec3 forward      = -glm::normalize(glm::cross(points[0].currPos - points[2].currPos, points[0].currPos - points[9].currPos));
+      glm::vec3 bind_forward = -glm::normalize(glm::cross(points[0].bindPos - points[2].bindPos, points[0].bindPos - points[9].bindPos));
       glm::vec3 up           = glm::normalize((points[0].currPos + points[2].currPos) / 2.0f - points[9].currPos);
       glm::vec3 bind_up      = glm::normalize((points[0].bindPos + points[2].bindPos) / 2.0f - points[9].bindPos);
 
@@ -700,7 +700,7 @@ void AnimatedCharacter::Step(float step, const std::shared_ptr<Window>& window)
    simple_vel[1] = 0.0f;
 
    // If on ground, look in the direction you are moving
-   glm::vec3 forward = glm::normalize(glm::cross(display.simple_rig.mPoints[4].currPos - display.simple_rig.mPoints[0].currPos, display.simple_rig.mPoints[2].currPos - display.simple_rig.mPoints[0].currPos));
+   glm::vec3 forward = glm::normalize(glm::cross(display.simple_rig.mPoints[0].currPos - display.simple_rig.mPoints[2].currPos, display.simple_rig.mPoints[0].currPos - display.simple_rig.mPoints[4].currPos));
    look_target[2] += forward[2];
    look_target = display_body.head.transform.position + forward * 0.1f;
    look_target += future_pos - past_pos;
@@ -792,7 +792,7 @@ void AnimatedCharacter::Step(float step, const std::shared_ptr<Window>& window)
          // Apply torque to keep torso upright and forward-facing
          float step_sqrd = step * step;
          float force = 20.0f;
-         glm::vec3 forward2 = glm::normalize(glm::cross(rig.mPoints[4].currPos - rig.mPoints[0].currPos, rig.mPoints[2].currPos - rig.mPoints[0].currPos));
+         glm::vec3 forward2 = glm::normalize(glm::cross(rig.mPoints[0].currPos - rig.mPoints[2].currPos, rig.mPoints[0].currPos - rig.mPoints[4].currPos));
          glm::vec3 flat_forward = glm::normalize(glm::vec3(forward2[0], 0.0f, forward2[2]));
          glm::vec3 top_force = (lean * flat_forward + glm::vec3(0.0f, 1.0f, 0.0f)) * force;
          rig.mPoints[4].currPos += step_sqrd * -top_force;
