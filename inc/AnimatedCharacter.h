@@ -161,26 +161,13 @@ private:
    glm::vec3 look_target; // For head look IK
 
    float body_compress_amount = 0.0f; // Used to shorten the distance between neck and hips if necessary, e.g. during quadruped gallop
-   float skate_amount = 0.0f; // Used to interpolate into and out of sliding state
 
    // Various parameters that were being used to tune an animation
    float base_walk_height = 0.7f;
    float tilt_offset = 0.81f;
    float gallop_offset = 0.55f; // For biped gallop
    float quad_gallop_offset = 0.25f; // For quadruped gallop
-   float gallop_stride = 1.0f;
-   float gallop_stride_height = 0.2f;
-   float gallop_hip_rotate = -1.3f;
-   float gallop_height_offset = 0.6f;
-   float gallop_height = 0.012f;
-   float gallop_height_base = 0.8f;
-   float gallop_lean = 1.5f;
-   float gallop_arm_stride_height = 0.4f;
-   float gallop_arm_stride = 0.4f;
    float quad_amount = 0.0f;
-   float gallop_amount = 0.0f;
-   float quad_gallop_body_compress_offset = 0.4f;
-   float quad_gallop_body_compress_amount = 0.15f;
 
    // ---
 

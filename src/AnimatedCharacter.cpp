@@ -164,7 +164,7 @@ void AnimatedCharacter::initialize(const std::shared_ptr<Shader>& staticMeshWith
 
       new_simple_rig->AddBone(0, 1, "arm_r");
       new_simple_rig->mBones[new_simple_rig->mBones.size() - 1].length[1] = measured_arm_length; // Max length
-      new_simple_rig->mBones[new_simple_rig->mBones.size() - 1].length[0] *= 0.4f; // Min lenght - Allow arm to flex
+      new_simple_rig->mBones[new_simple_rig->mBones.size() - 1].length[0] *= 0.4f;               // Min length -> Allow arm to flex
       new_simple_rig->AddBone(2, 3, "arm_l");
       new_simple_rig->mBones[new_simple_rig->mBones.size() - 1].length[1] = measured_arm_length;
       new_simple_rig->mBones[new_simple_rig->mBones.size() - 1].length[0] *= 0.4f;
@@ -352,12 +352,12 @@ glm::vec3 AnimatedCharacter::hexToColor(int hex)
 float AnimatedCharacter::GetAngleGivenSides(float a, float b, float c)
 {
    float top = (c * c - a * a - b * b);
+
    float divisor = (-2.0f * a * b);
    if (divisor == 0.0f) {
       return 0.0f;
    }
 
-   // TODO: Make sure we are passing the right thing to glm::acos, and that it's returning the right thing
    return glm::acos(glm::clamp(top / divisor, -1.0f, 1.0f));
 }
 
@@ -708,40 +708,25 @@ void AnimatedCharacter::Step(float step, const std::shared_ptr<Window>& window)
       float time = static_cast<float>(glfwGetTime());
 
       // Vary between different gaits based on speed and time
-      gallop_amount = glm::clamp(glm::abs(simple_vel[0]) / 4.0f + (glm::sin(time * 0.7f) - 1.0f) * 0.7f, 0.0f, 1.0f);
       quad_amount = glm::clamp((glm::sin(time * 2.3f) + glm::sin(time * 1.7f)), 0.0f, 1.0f);
 
       // Determine how far to lean forwards
       float walk_lean = glm::sin(time) * 0.2f + 0.3f;
-      float gallop_lean = glm::sin(time) * 0.2f + 0.8f + quad_amount * 0.07f * glm::abs(effective_vel[0]);
-      float lean = glm::mix(walk_lean, gallop_lean, gallop_amount);
+      float lean = walk_lean;
 
       // Adjust stride frequency based on speed
       float speed_mult = 8.0f / (static_cast<float>(M_PI) * 2.0f) * glm::pow((glm::abs(effective_vel[0]) + 1.0f), 0.4f);
       walk_time += step * speed_mult;
 
-      // Start sliding if above threshold speed and slope 
-      float target_skate_amount = 0.0f;
-      if (slope_vec[1] < -0.5f && glm::abs(effective_vel[0]) > 3.0f) {
-         target_skate_amount = 1.0f;
-      }
-      skate_amount = MoveTowards(skate_amount, target_skate_amount, step * 3.0f);
-      quad_amount = glm::mix(quad_amount, 0.0f, skate_amount);
-
       // Compress body during quadruped gallop
-      walk.body_compress_amount = glm::mix((glm::sin((walk_time + quad_gallop_body_compress_offset) * static_cast<float>(M_PI) * 2.0f) + 1.0f) * quad_gallop_body_compress_amount * quad_amount * gallop_amount,
-         0.1f,
-         skate_amount);
+      walk.body_compress_amount = 0.0f;
 
       // Adjust COM height based on gait
       glm::vec3 target_com = simple_pos;
       target_com[1] = smoothed_pos[1];
       float walk_height = base_walk_height + glm::sin((walk_time + 0.25f) * static_cast<float>(M_PI) * 4.0f) * glm::abs(effective_vel[0]) * 0.015f / speed_mult + glm::abs(effective_vel[0]) * 0.01f;
-      float gallop_height_ = glm::sin((walk_time + gallop_height_offset) * static_cast<float>(M_PI) * 2.0f) * gallop_height * glm::abs(effective_vel[0]) + gallop_height_base * (0.5f + glm::min(0.5f, glm::abs(effective_vel[0]) * 0.1f));
-      target_com[1] += glm::mix(walk_height, gallop_height_, gallop_amount);
-      target_com[1]  = glm::mix(target_com[1], simple_pos[1] + 0.5f, skate_amount);
+      target_com[1] += walk_height;
       target_com[1]  = glm::mix(target_com[1], simple_pos[1], glm::abs(lean) * 0.15f);
-      target_com[1]  = glm::mix(target_com[1], smoothed_pos[1], 0.0f);
 
       // Get ground slope again for use later
       glm::vec3 left = simple_pos + glm::vec3(0.1f, 0.0f, 0.0f);
@@ -752,22 +737,7 @@ void AnimatedCharacter::Step(float step, const std::shared_ptr<Window>& window)
 
       VerletSystem& rig = walk.simple_rig;
 
-      // Apply quadruped run effect to arms
-      if (gallop_amount * quad_amount > 0.0f) {
-         for (int i = 0; i < 2; ++i) {
-            // Get target position for hand
-            walk.limb_targets[i] = rig.mPoints[i * 2].currPos;
-            walk.limb_targets[i][1] = BranchesHeight(display.limb_targets[i][0]);
-            float time_val = walk_time * static_cast<float>(M_PI) * 2.0f;
-            walk.limb_targets[i][1] += (-glm::sin(time_val) + 0.5f) * gallop_arm_stride_height;
-            walk.limb_targets[i] += move_dir * (glm::cos(time_val) + 0.5f) * gallop_arm_stride * effective_vel[0] / speed_mult;
-
-            // Move hand towards target
-            float pull_strength = gallop_amount * quad_amount * glm::min(1.0f, glm::abs(effective_vel[0]) * 0.2f);
-            rig.mPoints[i * 2 + 1].currPos = MoveTowards(rig.mPoints[i * 2 + 1].currPos, walk.limb_targets[i], step * 0.5f * pull_strength * 4.0f);
-         }
-      }
-
+      // Simulate the walk simple rig
       rig.StartSim(step);
       for (int j = 0; j < 4; ++j) {
          // Adjust all free points to match target COM
@@ -796,24 +766,23 @@ void AnimatedCharacter::Step(float step, const std::shared_ptr<Window>& window)
          rig.mPoints[4].currPos += step_sqrd * -top_force;
          rig.mPoints[0].currPos += step_sqrd * top_force * 0.5f;
          rig.mPoints[2].currPos += step_sqrd * top_force * 0.5f;
-         rig.mPoints[0].currPos[2] -= step_sqrd * effective_vel[0] * 2.0f * (1.0f - skate_amount);
-         rig.mPoints[2].currPos[2] += step_sqrd * effective_vel[0] * 2.0f * (1.0f - skate_amount);
+         rig.mPoints[0].currPos[2] -= step_sqrd * effective_vel[0] * 2.0f;
+         rig.mPoints[2].currPos[2] += step_sqrd * effective_vel[0] * 2.0f;
 
          // Add rotational force to body if needed
          for (int i = 0; i < 2; ++i) {
             float walk_rotate = (glm::cos((walk_time + tilt_offset) * static_cast<float>(M_PI) * 2.0f + static_cast<float>(M_PI) * i)) * 0.2f;
-            float gallop_rotate = (glm::cos(static_cast<float>(M_PI) * i)) * (gallop_hip_rotate * (1.0f - quad_amount));
-            float rotate = glm::mix(walk_rotate, gallop_rotate, gallop_amount);
+            float rotate = walk_rotate;
             rig.mPoints[i * 2].currPos[0] += step_sqrd * -3.0f * rotate * effective_vel[0] / speed_mult;
          }
 
          // Move arms out to sides
          float speed = glm::abs(effective_vel[0]) / max_speed;
          for (int i = 0; i < 2; ++i) {
-            float arms_up = glm::abs(speed * (glm::sin(time * ((i == 1) ? 2.5f : 2.3f)) * 0.3f + 0.7f)) * (1.0f - gallop_amount);
+            float arms_up = glm::abs(speed * (glm::sin(time * ((i == 1) ? 2.5f : 2.3f)) * 0.3f + 0.7f));
             rig.mPoints[1 + i * 2].currPos += step_sqrd * (rig.mPoints[0].currPos - rig.mPoints[2].currPos) * (1.5f + speed * 2.0f + arms_up * 2.0f) * static_cast<float>(1 - i * 2) * 2.0f;
             rig.mPoints[1 + i * 2].currPos[1] += step_sqrd * 10.0f * arms_up * arms_up;
-            rig.mBones[i].length[1] = rig.mBones[0].length[0] / 0.4f * glm::mix((glm::mix(0.95f, 0.8f, glm::min(speed * 0.25f, 1.0f) + glm::sin(arms_up * static_cast<float>(M_PI)) * 0.1f)), 1.0f, gallop_amount);
+            rig.mBones[i].length[1] = rig.mBones[0].length[0] / 0.4f * (glm::mix(0.95f, 0.8f, glm::min(speed * 0.25f, 1.0f) + glm::sin(arms_up * static_cast<float>(M_PI)) * 0.1f));
          }
 
          PreventHandsFromCrossingBody(rig);
@@ -834,12 +803,10 @@ void AnimatedCharacter::Step(float step, const std::shared_ptr<Window>& window)
          float offset = glm::mix(gallop_offset, quad_gallop_offset, quad_amount);
          float time_val = walk_time * static_cast<float>(M_PI) * 2.0f + static_cast<float>(M_PI) * i * offset;
          walk.limb_targets[2 + i] = simple_pos;
-         walk.limb_targets[2 + i] += (move_dir * (glm::cos(walk_time * static_cast<float>(M_PI) * 2.0f + static_cast<float>(M_PI) * i)) * 0.2f - 0.03f) * effective_vel[0] / speed_mult * (1.0f - skate_amount) * (1.0f - gallop_amount);
-         walk.limb_targets[2 + i] += (move_dir * (glm::cos(time_val)) * 0.2f - 0.03f) * effective_vel[0] / speed_mult * (1.0f - skate_amount) * gallop_stride * (1.0f - skate_amount) * gallop_amount;
-         walk.limb_targets[2 + i] += (rig.mPoints[0].currPos - rig.mPoints[2].currPos) * (1.0f - 2.0f * i) * (0.3f + 0.3f * skate_amount);
+         walk.limb_targets[2 + i] += (move_dir * (glm::cos(walk_time * static_cast<float>(M_PI) * 2.0f + static_cast<float>(M_PI) * i)) * 0.2f - 0.03f) * effective_vel[0] / speed_mult;
+         walk.limb_targets[2 + i] += (rig.mPoints[0].currPos - rig.mPoints[2].currPos) * (1.0f - 2.0f * i) * (0.3f);
          walk.limb_targets[2 + i][1] = BranchesHeight(walk.limb_targets[2 + i][0]);
-         walk.limb_targets[2 + i][1] += (-glm::sin(walk_time * static_cast<float>(M_PI) * 2.0f + static_cast<float>(M_PI) * i) + 1.0f) * 0.2f * (glm::pow(glm::abs(effective_vel[0]) + 1.0f, 0.3f) - 1.0f) * (1.0f - skate_amount) * (1.0f - gallop_amount);
-         walk.limb_targets[2 + i][1] += (-glm::sin(time_val) + 1.0f) * gallop_stride_height * (glm::pow(glm::abs(effective_vel[0]) + 1.0f, 0.3f) - 1.0f) * (1.0f - skate_amount) * gallop_amount;
+         walk.limb_targets[2 + i][1] += (-glm::sin(walk_time * static_cast<float>(M_PI) * 2.0f + static_cast<float>(M_PI) * i) + 1.0f) * 0.2f * (glm::pow(glm::abs(effective_vel[0]) + 1.0f, 0.3f) - 1.0f);
       }
    }
 
