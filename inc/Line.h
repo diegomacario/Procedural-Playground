@@ -12,6 +12,10 @@ class Line
 {
 public:
 
+   Line(glm::vec3 startPoint,
+        glm::vec3 endPoint,
+        glm::vec3 color);
+
    Line(glm::vec3        startPoint,
         glm::vec3        endPoint,
         const glm::vec3& position,
@@ -19,6 +23,7 @@ public:
         const glm::vec3& axisOfRot,
         float            scalingFactor,
         glm::vec3        color);
+
    ~Line();
 
    Line(const Line&) = delete;

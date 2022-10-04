@@ -6,8 +6,8 @@
 
 AnimatedCharacter::AnimatedCharacter()
 {
-   mBaseColors = { glm::vec3(1.0f, 0.45f, 0.0f), // Belly
-                   glm::vec3(1.0f, 1.0f, 0.0f),  // Chest
+   mBaseColors = { hexToColor(0xFF7300),         // Belly
+                   hexToColor(0xFFFF00),         // Chest
                    hexToColor(0xE01171),         // Left shoulder
                    hexToColor(0x071A52),         // Right shoulder
                    hexToColor(0x0F0766),         // Left thumb
@@ -16,8 +16,8 @@ AnimatedCharacter::AnimatedCharacter()
                    hexToColor(0xA7FF83),         // Right thumb
                    hexToColor(0xA7FF83),         // Right hand
                    hexToColor(0x17B978),         // Right forearm
-                   glm::vec3(0.5f, 0.5f, 0.5f),  // Head
-                   glm::vec3(1.0f, 0.0f, 0.0f),  // Hip
+                   hexToColor(0x808080),         // Head
+                   hexToColor(0xFF0000),         // Hip
                    hexToColor(0x59057B),         // Left foot
                    hexToColor(0xAB0E86),         // Left calf
                    hexToColor(0x17B978),         // Right foot
@@ -27,17 +27,17 @@ AnimatedCharacter::AnimatedCharacter()
                    hexToColor(0xAB0E86),         // Left bicep
                    hexToColor(0x086972) };       // Right bicep
 
-   mPointsBaseColors = { hexToColor(0x086972),           // Right bicep
-                         hexToColor(0x17B978),           // Right foot
-                         hexToColor(0xA7FF83),           // Right hand
-                         glm::vec3(0.0f, 0.0f, 0.0f),    // Hip
-                         glm::vec3(0.5f, 0.5f, 0.5f),    // Head
-                         hexToColor(0x071A52),           // Right thigh
-                         hexToColor(0x086972),           // Right knee
-                         glm::vec3(1.0f, 1.0f, 0.0f),    // Neck
-                         glm::vec3(1.0f, 0.0f, 0.0f),    // Belly
-                         hexToColor(0x071A52),           // Right shoulder
-                         glm::vec3(1.0f, 0.45f, 0.0f) }; // Chest
+   mPointsBaseColors = { hexToColor(0x086972),   // Right bicep
+                         hexToColor(0x17B978),   // Right foot
+                         hexToColor(0xA7FF83),   // Right hand
+                         hexToColor(0x000000),   // Hip
+                         hexToColor(0x808080),   // Head
+                         hexToColor(0x071A52),   // Right thigh
+                         hexToColor(0x086972),   // Right knee
+                         hexToColor(0xFFFF00),   // Neck
+                         hexToColor(0xFF0000),   // Belly
+                         hexToColor(0x071A52),   // Right shoulder
+                         hexToColor(0xFF7300) }; // Chest
 
    mLineShader = ResourceManager<Shader>().loadUnmanagedResource<ShaderLoader>("resources/shaders/line.vert",
                                                                                "resources/shaders/line.frag");
@@ -61,7 +61,8 @@ void AnimatedCharacter::initialize(const std::shared_ptr<Shader>& staticMeshWith
    simple_pos[2] = 0.0f;
 
    // Init hand positions
-   for (int i = 0; i < 4; ++i) {
+   for (int i = 0; i < 4; ++i)
+   {
       display.limb_targets[i] = simple_pos;
       walk.limb_targets[i] = simple_pos;
    }
@@ -191,31 +192,28 @@ void AnimatedCharacter::initialize(const std::shared_ptr<Shader>& staticMeshWith
    float measured_arm_length = glm::distance(shoulder.position, elbow.position) + glm::distance(elbow.position, grip.position);
 
    // Set up movement system particles and bones
-   for (int i = 0; i < 2; ++i) {
-      VerletSystem* new_simple_rig;
-      switch (i) {
-      case 0:  new_simple_rig = &(display.simple_rig); break;
-      default: new_simple_rig = &(walk.simple_rig); break;
-      }
+   for (int i = 0; i < 2; ++i)
+   {
+      VerletSystem& new_simple_rig = (i == 0) ? display.simple_rig : walk.simple_rig;
 
-      new_simple_rig->AddPoint(shoulder.position, "shoulder_r");
-      new_simple_rig->AddPoint(grip.position, "hand_r");
-      new_simple_rig->AddPoint((shoulder.position + glm::vec3(1.0f, 0.0f, 0.0f) * (neck.position[0] - shoulder.position[0]) * 2.0f), "shoulder_l");
-      new_simple_rig->AddPoint((grip.position + glm::vec3(1.0f, 0.0f, 0.0f) * (neck.position[0] - grip.position[0]) * 2.0f), "hand_l");
-      new_simple_rig->AddPoint(glm::vec3(neck.position[0], hip.position[1], neck.position[2]), "body");
-      new_simple_rig->mPoints[0].mass = 2.0f;
-      new_simple_rig->mPoints[2].mass = 2.0f;
-      new_simple_rig->mPoints[4].mass = 4.0f;
+      new_simple_rig.AddPoint(shoulder.position, "shoulder_r");
+      new_simple_rig.AddPoint(grip.position, "hand_r");
+      new_simple_rig.AddPoint((shoulder.position + glm::vec3(1.0f, 0.0f, 0.0f) * (neck.position[0] - shoulder.position[0]) * 2.0f), "shoulder_l");
+      new_simple_rig.AddPoint((grip.position + glm::vec3(1.0f, 0.0f, 0.0f) * (neck.position[0] - grip.position[0]) * 2.0f), "hand_l");
+      new_simple_rig.AddPoint(glm::vec3(neck.position[0], hip.position[1], neck.position[2]), "body");
+      new_simple_rig.mPoints[0].mass = 2.0f;
+      new_simple_rig.mPoints[2].mass = 2.0f;
+      new_simple_rig.mPoints[4].mass = 4.0f;
 
-      new_simple_rig->AddBone(0, 1, "arm_r");
-      new_simple_rig->mBones[new_simple_rig->mBones.size() - 1].length[1] = measured_arm_length; // Max length
-      new_simple_rig->mBones[new_simple_rig->mBones.size() - 1].length[0] *= 0.4f;               // Min length -> Allow arm to flex
-      new_simple_rig->AddBone(2, 3, "arm_l");
-      new_simple_rig->mBones[new_simple_rig->mBones.size() - 1].length[1] = measured_arm_length;
-      new_simple_rig->mBones[new_simple_rig->mBones.size() - 1].length[0] *= 0.4f;
-      new_simple_rig->AddBone(0, 2, "tri_top");
-      new_simple_rig->AddBone(0, 4, "tri_r");
-      new_simple_rig->AddBone(2, 4, "tri_l");
+      new_simple_rig.AddBone(0, 1, "arm_r");
+      new_simple_rig.mBones[new_simple_rig.mBones.size() - 1].length[1] = measured_arm_length; // Max length
+      new_simple_rig.mBones[new_simple_rig.mBones.size() - 1].length[0] *= 0.4f;               // Min length
+      new_simple_rig.AddBone(2, 3, "arm_l");
+      new_simple_rig.mBones[new_simple_rig.mBones.size() - 1].length[1] = measured_arm_length; // Max length
+      new_simple_rig.mBones[new_simple_rig.mBones.size() - 1].length[0] *= 0.4f;               // Min length
+      new_simple_rig.AddBone(0, 2, "tri_top");
+      new_simple_rig.AddBone(0, 4, "tri_r");
+      new_simple_rig.AddBone(2, 4, "tri_l");
    }
 
    // Set up full-body IK particles and bones
@@ -235,41 +233,38 @@ void AnimatedCharacter::initialize(const std::shared_ptr<Shader>& staticMeshWith
    complete.AddPoint(foot.position + glm::vec3(1.0f, 0.0f, 0.0f) * (neck.position[0] - foot.position[0]) * 2.0f, "foot_l");
 
    complete.AddBone(0, 1, "arm_r");
-   complete.mBones[complete.mBones.size() - 1].length[1] = measured_arm_length;
-   complete.mBones[complete.mBones.size() - 1].length[0] *= 0.4f;
+   complete.mBones[complete.mBones.size() - 1].length[1] = measured_arm_length; // Max length
+   complete.mBones[complete.mBones.size() - 1].length[0] *= 0.4f;               // Min length
    complete.AddBone(2, 3, "arm_l");
-   complete.mBones[complete.mBones.size() - 1].length[1] = measured_arm_length;
-   complete.mBones[complete.mBones.size() - 1].length[0] *= 0.4f;
+   complete.mBones[complete.mBones.size() - 1].length[1] = measured_arm_length; // Max length
+   complete.mBones[complete.mBones.size() - 1].length[0] *= 0.4f;               // Min length
    complete.AddBone(5, 6, "head");
    complete.AddBone(6, 7, "chest");
    complete.AddBone(7, 8, "belly");
    complete.AddBone(8, 9, "pelvis");
    complete.AddBone(10, 11, "leg_r");
-   complete.mBones[complete.mBones.size() - 1].length[0] *= 0.4f;
+   complete.mBones[complete.mBones.size() - 1].length[0] *= 0.4f; // Min length
    complete.AddBone(12, 13, "leg_l");
-   complete.mBones[complete.mBones.size() - 1].length[0] *= 0.4f;
+   complete.mBones[complete.mBones.size() - 1].length[0] *= 0.4f; // Min length
 
-   // Create random branch 'terrain'
+   // Create random branch terrain
    srand(static_cast<unsigned>(glfwGetTime()));
 
    int num_segments = 80;
    float x = 0;
    float y = 0;
-   for (int i = 0; i < num_segments + 1; ++i) {
+   for (int i = 0; i < num_segments + 1; ++i)
+   {
       branches.AddPoint(glm::vec3(x, y, 0), "branch");
-      x -= 2.0f + static_cast <float> (rand()) / (static_cast <float> (RAND_MAX / (6.0f - 2.0f)));
-      y += -3.0f + static_cast <float> (rand()) / (static_cast <float> (RAND_MAX / (3.0f - -3.0f)));
-      y = glm::clamp(y, -2.5f, 2.5f); // Make sure we stay on screen
+      x -= 2.0f + static_cast<float>(rand()) / (static_cast<float>(RAND_MAX / (6.0f - 2.0f)));
+      //y += -3.0f + static_cast <float> (rand()) / (static_cast <float> (RAND_MAX / (3.0f - -3.0f)));
+      //y = glm::clamp(y, -2.5f, 2.5f); // Make sure we stay on screen
    }
-   for (int i = 0; i < num_segments; ++i) {
+
+   for (int i = 0; i < num_segments; ++i)
+   {
       branches.AddBone(i, i + 1, "branch");
-      mLines.emplace_back(branches.mPoints[i].bindPos,
-                          branches.mPoints[i + 1].bindPos,
-                          glm::vec3(0.0f),
-                          0.0f,
-                          glm::vec3(0.0f, 1.0f, 0.0f),
-                          1.0f,
-                          glm::vec3(0.0f, 1.0f, 0.0f));
+      mLines.emplace_back(branches.mPoints[i].bindPos, branches.mPoints[i + 1].bindPos, glm::vec3(0.0f, 1.0f, 0.0f));
    }
 
    // Set the initial pose

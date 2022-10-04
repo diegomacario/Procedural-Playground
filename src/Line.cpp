@@ -11,6 +11,24 @@
 
 Line::Line(glm::vec3        startPoint,
            glm::vec3        endPoint,
+           glm::vec3        color)
+   : mStartPoint(startPoint)
+   , mEndPoint(endPoint)
+   , mPosition(glm::vec3(0.0f))
+   , mRotation(Q::quat())
+   , mScalingFactor(1.0f)
+   , mColor(color)
+   , mModelMatrix(1.0f)
+   , mCalculateModelMatrix(true)
+   , mVAO(0)
+   , mVBO(0)
+{
+   calculateModelMatrix();
+   configureVAO(startPoint, endPoint);
+}
+
+Line::Line(glm::vec3        startPoint,
+           glm::vec3        endPoint,
            const glm::vec3& position,
            float            angleOfRotInDeg,
            const glm::vec3& axisOfRot,
