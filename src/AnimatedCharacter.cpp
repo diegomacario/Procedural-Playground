@@ -545,8 +545,8 @@ void AnimatedCharacter::Update()
       glm::vec3 bind_mid     = (points[0].bindPos + points[2].bindPos + points[4].bindPos) / 3.0f;
       glm::vec3 mid          = (points[0].currPos + points[2].currPos + points[4].currPos) / 3.0f;
       // Forward vector of chest's triangle
-      glm::vec3 forward      = glm::normalize(glm::cross(points[0].currPos - points[2].currPos, points[0].currPos - points[4].currPos));
-      glm::vec3 bind_forward = glm::normalize(glm::cross(points[0].bindPos - points[2].bindPos, points[0].bindPos - points[4].bindPos));
+      glm::vec3 forward      = glm::normalize(glm::cross(points[4].currPos - points[0].currPos, points[2].currPos - points[0].currPos));
+      glm::vec3 bind_forward = glm::normalize(glm::cross(points[4].bindPos - points[0].bindPos, points[2].bindPos - points[0].bindPos));
       // Up vector that points from body to mid point between the shoulders
       glm::vec3 up           = glm::normalize((points[0].currPos + points[2].currPos) / 2.0f - points[4].currPos);
       glm::vec3 bind_up      = glm::normalize((points[0].bindPos + points[2].bindPos) / 2.0f - points[4].bindPos);
@@ -633,8 +633,8 @@ void AnimatedCharacter::Update()
       glm::vec3 bind_mid     = (points[0].bindPos + points[2].bindPos + points[9].bindPos) / 3.0f;
       glm::vec3 mid          = (points[0].currPos + points[2].currPos + points[9].currPos) / 3.0f;
       // Forward vector of torso negated, so it points backwards
-      glm::vec3 forward      = -glm::normalize(glm::cross(points[0].currPos - points[2].currPos, points[0].currPos - points[9].currPos));
-      glm::vec3 bind_forward = -glm::normalize(glm::cross(points[0].bindPos - points[2].bindPos, points[0].bindPos - points[9].bindPos));
+      glm::vec3 forward      = -glm::normalize(glm::cross(points[9].currPos - points[0].currPos, points[2].currPos - points[0].currPos));
+      glm::vec3 bind_forward = -glm::normalize(glm::cross(points[9].bindPos - points[0].bindPos, points[2].bindPos - points[0].bindPos));
       // Up vector that points from groin to mid point between the shoulders
       glm::vec3 up           = glm::normalize((points[0].currPos + points[2].currPos) / 2.0f - points[9].currPos);
       glm::vec3 bind_up      = glm::normalize((points[0].bindPos + points[2].bindPos) / 2.0f - points[9].bindPos);
@@ -676,6 +676,7 @@ void AnimatedCharacter::Update()
          glm::vec3 elbow_point      = ((points[2].currPos + points[0].currPos) * 0.5f + up * ik_up_amount + forward * ik_forward_amount);
          glm::vec3 bind_elbow_point = ((points[2].bindPos + points[0].bindPos) * 0.5f + bind_up * ik_up_amount + bind_forward * ik_forward_amount);
 
+         // TODO: I bet these cross products are wrong because of the LH vs RH coordinate system problem
          // ((mid point between hand and shoulder) - elbow IK target) cross (shoulder - hand)
          // This looks to me like the axis of rotation of the elbow
          // It points outwards from the body (remember to use your left hand when computing cross products in a left-handed coordinate system like Unity's)
@@ -860,7 +861,7 @@ void AnimatedCharacter::Step(float step, const std::shared_ptr<Window>& window)
 
    // If on ground, look in the direction you are moving
    // Here we calculate the forward vector of the chest's triangle
-   glm::vec3 forward = glm::normalize(glm::cross(display.simple_rig.mPoints[0].currPos - display.simple_rig.mPoints[2].currPos, display.simple_rig.mPoints[0].currPos - display.simple_rig.mPoints[4].currPos));
+   glm::vec3 forward = glm::normalize(glm::cross(display.simple_rig.mPoints[4].currPos - display.simple_rig.mPoints[0].currPos, display.simple_rig.mPoints[2].currPos - display.simple_rig.mPoints[0].currPos));
    look_target = display_body.head.transform.position + forward * 0.1f;
    look_target += future_pos - past_pos;
 
@@ -941,7 +942,7 @@ void AnimatedCharacter::Step(float step, const std::shared_ptr<Window>& window)
             float step_sqrd = step * step;
             float force = 20.0f;
             // Calculate the forward vector of the chest's triangle
-            glm::vec3 forward2 = glm::normalize(glm::cross(rig.mPoints[0].currPos - rig.mPoints[2].currPos, rig.mPoints[0].currPos - rig.mPoints[4].currPos));
+            glm::vec3 forward2 = glm::normalize(glm::cross(rig.mPoints[4].currPos - rig.mPoints[0].currPos, rig.mPoints[2].currPos - rig.mPoints[0].currPos));
             glm::vec3 flat_forward = glm::normalize(glm::vec3(forward2[0], 0.0f, forward2[2]));
             // flat_foward is simply the forward vector of the chest's triangle with no Y component, so it's always perfectly aligned with the +X and -X axes
             // Multiplying flat_forward by lean causes the length of the vector to shrink when the character is upright, and to grow when the character is leaning
