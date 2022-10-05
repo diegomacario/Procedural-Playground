@@ -382,6 +382,20 @@ void AnimatedCharacter::render(const std::shared_ptr<Shader>& staticMeshWithoutU
    mLineShader->use(false);
 }
 
+glm::vec3 AnimatedCharacter::getCOM() const
+{
+   float total_mass = 0.0f;
+   glm::vec3 com(0.0f, 0.0f, 0.0f);
+   const std::vector<VerletSystem::Point>& points = display.simple_rig.mPoints;
+   for (int i = 0; i < points.size(); ++i)
+   {
+      com += points[i].currPos * points[i].mass;
+      total_mass += points[i].mass;
+   }
+   com /= total_mass;
+   return com;
+}
+
 glm::vec3 AnimatedCharacter::hexToColor(int hex)
 {
    float r = static_cast<float>(((hex >> 16) & 0xff)) / 255.0f;
@@ -513,14 +527,14 @@ float AnimatedCharacter::BranchesHeight(float x)
    for (int i = 0; i < branches.mBones.size(); ++i)
    {
       const glm::ivec2& point_ids = branches.mBones[i].pointIndices;
-      if (x >= branches.mPoints[point_ids[0]].currPos[0] && x < branches.mPoints[point_ids[1]].currPos[0])
+      if (x <= branches.mPoints[point_ids[0]].currPos[0] && x > branches.mPoints[point_ids[1]].currPos[0])
       {
          return BranchHeight(x, point_ids[0], point_ids[1]);
       }
    }
 
    // If not on terrain, extend horizontally forever
-   if (x < 0.0f)
+   if (x > 0.0f)
    {
       return branches.mPoints[0].currPos[1];
    }
@@ -676,7 +690,6 @@ void AnimatedCharacter::Update()
          glm::vec3 elbow_point      = ((points[2].currPos + points[0].currPos) * 0.5f + up * ik_up_amount + forward * ik_forward_amount);
          glm::vec3 bind_elbow_point = ((points[2].bindPos + points[0].bindPos) * 0.5f + bind_up * ik_up_amount + bind_forward * ik_forward_amount);
 
-         // TODO: I bet these cross products are wrong because of the LH vs RH coordinate system problem
          // ((mid point between hand and shoulder) - elbow IK target) cross (shoulder - hand)
          // This looks to me like the axis of rotation of the elbow
          // It points outwards from the body (remember to use your left hand when computing cross products in a left-handed coordinate system like Unity's)
@@ -817,11 +830,11 @@ void AnimatedCharacter::Step(float step, const std::shared_ptr<Window>& window)
    float horz_input = 0.0f;
    if (window->keyIsPressed(GLFW_KEY_D))
    {
-      horz_input = 1.0f; // Move to the right (along the +X direction)
+      horz_input = 1.0f; // Move to the right (along the -X direction)
    }
    if (window->keyIsPressed(GLFW_KEY_A))
    {
-      horz_input = -1.0f; // Move to the left (along the -X direction)
+      horz_input = -1.0f; // Move to the left (along the +X direction)
    }
 
    // Max speed of 7 m/s while running
@@ -842,9 +855,9 @@ void AnimatedCharacter::Step(float step, const std::shared_ptr<Window>& window)
    // It makes the height of the character not match the height of the branches at those points
    // In points like this one: /\ -> The height of the character is lower than the corner
    // In points like this one: \/ -> the height of the character is higher than the corner
-   glm::vec3 future_pos   = simple_pos + simple_vel * 0.1f;
+   glm::vec3 future_pos   = simple_pos + simple_vel * -0.1f;
    future_pos[1]          = BranchesHeight(future_pos[0]);
-   glm::vec3 past_pos     = simple_pos + simple_vel * -0.1f;
+   glm::vec3 past_pos     = simple_pos + simple_vel * 0.1f;
    past_pos[1]            = BranchesHeight(past_pos[0]);
    glm::vec3 smoothed_pos = (future_pos + past_pos + simple_pos) / 3.0f;
 
@@ -854,7 +867,7 @@ void AnimatedCharacter::Step(float step, const std::shared_ptr<Window>& window)
 
    // Apply modified running speed to position
    glm::vec3 effective_vel = simple_vel * slope_speed_mult;
-   simple_pos += effective_vel * step;
+   simple_pos += effective_vel * step * -1.0f;
 
    simple_pos[1] = BranchesHeight(simple_pos[0]);
    simple_vel[1] = 0.0f;
@@ -897,8 +910,8 @@ void AnimatedCharacter::Step(float step, const std::shared_ptr<Window>& window)
       target_com[1] = glm::mix(target_com[1], simple_pos[1], glm::abs(lean) * 0.15f);
 
       // Get ground slope again for use later
-      glm::vec3 left = simple_pos - glm::vec3(0.1f, 0.0f, 0.0f);
-      glm::vec3 right = simple_pos + glm::vec3(0.1f, 0.0f, 0.0f);
+      glm::vec3 left = simple_pos + glm::vec3(0.1f, 0.0f, 0.0f);
+      glm::vec3 right = simple_pos - glm::vec3(0.1f, 0.0f, 0.0f);
       left[1] = BranchesHeight(left[0]);
       right[1] = BranchesHeight(right[0]);
       // move_dir always points to the right (i.e. down the +X axis)

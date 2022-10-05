@@ -71,6 +71,8 @@ public:
    void      render(const std::shared_ptr<Shader>& staticMeshWithoutUVsShader, const glm::mat4& viewMatrix, const glm::mat4& perspectiveProjectionMatrix);
 
    glm::vec3 getPosition() const { return simple_pos; }
+   glm::vec3 getVelocity() const { return simple_vel; }
+   glm::vec3 getCOM() const;
 
    void      clearLines() { mLines.clear(); }
 

@@ -17,7 +17,7 @@ PlayState::PlayState(const std::shared_ptr<FiniteStateMachine>& finiteStateMachi
                      const std::shared_ptr<Window>&             window)
    : mFSM(finiteStateMachine)
    , mWindow(window)
-   , mCamera3(4.0f, 15.0f, glm::vec3(0.0f), Q::angleAxis(glm::radians(180.0f), glm::vec3(0.0f, 1.0f, 0.0f)), glm::vec3(0.0f, 0.5f, 0.0f), 0.0f, 20.0f, 0.0f, 90.0f, 45.0f, 1280.0f / 720.0f, 0.1f, 130.0f, 0.25f)
+   , mCamera3(4.0f, 0.0f, glm::vec3(0.0f), Q::angleAxis(glm::radians(180.0f), glm::vec3(0.0f, 1.0f, 0.0f)), glm::vec3(0.0f, 0.0f, 0.0f), 0.0f, 20.0f, 0.0f, 90.0f, 45.0f, 1280.0f / 720.0f, 0.1f, 130.0f, 0.25f)
 {
    mStaticMeshShader = ResourceManager<Shader>().loadUnmanagedResource<ShaderLoader>("resources/shaders/static_mesh.vert",
                                                                                      "resources/shaders/ambient_diffuse_illumination.frag");
@@ -123,7 +123,9 @@ void PlayState::update(float deltaTime)
 
    mAnimatedCharacter.Update();
 
-   mCamera3.processPlayerMovement(mAnimatedCharacter.getPosition(), Q::angleAxis(glm::radians(180.0f), glm::vec3(0.0f, 1.0f, 0.0f)));
+   glm::vec3 playerCOM = mAnimatedCharacter.getCOM();
+   glm::vec3 adjustedPlayerPos(playerCOM[0] + mAnimatedCharacter.getVelocity()[0] * -0.1f, playerCOM[1], 0.0f);
+   mCamera3.processPlayerMovement(adjustedPlayerPos, Q::angleAxis(glm::radians(180.0f), glm::vec3(0.0f, 1.0f, 0.0f)));
 
    mStaticMeshWithoutUVsShader->use(true);
    mStaticMeshWithoutUVsShader->setUniformVec3("pointLights[0].worldPos", glm::vec3(mAnimatedCharacter.getPosition().x, 2.0f, 10.0f));
@@ -288,6 +290,6 @@ void PlayState::resetScene()
 
 void PlayState::resetCamera()
 {
-   mCamera3.reposition(4.0f, 15.0f, glm::vec3(0.0f, 0.0f, 0.0f), Q::angleAxis(glm::radians(180.0f), glm::vec3(0.0f, 1.0f, 0.0f)), glm::vec3(0.0f, 0.5f, 0.0f), 0.0f, 20.0f, 0.0f, 90.0f);
+   mCamera3.reposition(4.0f, 0.0f, glm::vec3(0.0f, 0.0f, 0.0f), Q::angleAxis(glm::radians(180.0f), glm::vec3(0.0f, 1.0f, 0.0f)), glm::vec3(0.0f, 0.0f, 0.0f), 0.0f, 20.0f, 0.0f, 90.0f);
    mCamera3.processMouseMovement(180.0f / 0.25f, 0.0f);
 }
