@@ -127,6 +127,11 @@ glm::vec3 transformVector(const Transform& t, const glm::vec3& v)
    return t.rotation * (t.scale * v);
 }
 
+glm::vec3 transformDirection(const Transform& t, const glm::vec3& d)
+{
+   return t.rotation * d;
+}
+
 glm::vec3 inverseTransformPoint(const Transform& t, const glm::vec3& p)
 {
    Transform invT = inverse(t);

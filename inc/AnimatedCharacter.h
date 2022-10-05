@@ -104,9 +104,9 @@ private:
    // Get height of entire branch terrain at given x coordinate
    float BranchesHeight(float x);
 
-   float MoveTowards(float a, float b, float max_dist);
+   float MoveTowardsF(float a, float b, float max_dist);
 
-   glm::vec3 MoveTowards(const glm::vec3& a, const glm::vec3& b, float max_dist);
+   glm::vec3 MoveTowardsVec(const glm::vec3& a, const glm::vec3& b, float max_dist);
 
    void PreventHandsFromCrossingBody(VerletSystem& rig);
 
