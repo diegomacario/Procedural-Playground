@@ -462,19 +462,19 @@ void AnimatedCharacter::ApplyTwoBoneIK(int start_id,
    // With only this rotation the arms are stiff (i.e. they rotate around the shoulder, but they don't bend at the elbows)
    // (end.pos - start.pos) = (hand - shoulder) = points downwards
    // forward points backwards
-   Q::quat base_rotation = Q::lookRotation(end.currPos - start.currPos, forward) * Q::inverse(Q::lookRotation(end.bindPos - start.bindPos, glm::vec3(0.0f, 0.0f, 1.0f)));
+   Q::quat base_rotation = Q::inverse(Q::lookRotation(end.bindPos - start.bindPos, glm::vec3(0.0f, 0.0f, 1.0f))) * Q::lookRotation(end.currPos - start.currPos, forward);
    // Apply additional rotation from IK
-   base_rotation = Q::angleAxis(base_angle, axis) * base_rotation * Q::inverse(Q::angleAxis(old_base_angle, old_axis));
+   base_rotation = Q::inverse(Q::angleAxis(old_base_angle, old_axis)) * base_rotation * Q::angleAxis(base_angle, axis);
 
    // Apply base and hinge rotations to actual display bones
    // bind_bicep + (shoulder - bind_shoulder) = move bicep into position below the shoulder
    top.transform.position = top.bind_pos + (start.currPos - start.bindPos);
    // orient the bicep
-   top.transform.rotation = base_rotation * top.bind_rot;
+   top.transform.rotation = top.bind_rot * base_rotation;
 
    // Move forearm into position below the arm
-   bottom.transform.position = top.transform.position + top.transform.rotation * Q::inverse(top.bind_rot) * (bottom.bind_pos - top.bind_pos);
-   bottom.transform.rotation = Q::angleAxis(hinge_angle, axis) * base_rotation * Q::inverse(Q::angleAxis(old_hinge_angle, old_axis)) * bottom.bind_rot;
+   bottom.transform.position = top.transform.position + Q::inverse(top.bind_rot) * top.transform.rotation * (bottom.bind_pos - top.bind_pos);
+   bottom.transform.rotation = bottom.bind_rot * Q::inverse(Q::angleAxis(old_hinge_angle, old_axis)) * base_rotation * Q::angleAxis(hinge_angle, axis);
 }
 
 // Calculate bone transform that matches orientation of top and bottom points, and looks in the character "forward" direction
@@ -493,8 +493,8 @@ void AnimatedCharacter::ApplyBound(DisplayBone& part, const glm::vec3& forward, 
    // Apply rotations
    // This quaternion has the same purpose as body_rotation
    // This code is actually the same as the code in the beginning of the Update function
-   Q::quat rotation = Q::lookRotation(up, forward)* Q::inverse(Q::lookRotation(bind_up, bind_forward));
-   part.transform.rotation = rotation * part.bind_rot;
+   Q::quat rotation = Q::inverse(Q::lookRotation(bind_up, bind_forward)) * Q::lookRotation(up, forward);
+   part.transform.rotation = part.bind_rot * rotation;
    part.transform.position = mid + (rotation * (part.bind_pos - bind_mid));
 }
 
@@ -566,7 +566,7 @@ void AnimatedCharacter::Update()
       // body_rotation is the quaternion that rotates (bind_pos[i] - bind_mid) so that it has the orientation of the chest's triangle
       // I see it as transforming the vector to the inverse bind space, and then back to world space with the chest's orientation
       // lookRot(fwd, up) * lookRot(bindFwd, bindUp)^-1 * bindVec
-      Q::quat body_rotation = Q::lookRotation(forward, up) * Q::inverse(Q::lookRotation(bind_forward, bind_up));
+      Q::quat body_rotation = Q::inverse(Q::lookRotation(bind_forward, bind_up)) * Q::lookRotation(forward, up);
 
       // Set up spine, head and leg positions based on body rotation
       // 5  = head
@@ -717,7 +717,7 @@ void AnimatedCharacter::Update()
 
          // Get base whole-leg rotation
          Q::quat bind_rotation = Q::lookRotation(points[end].bindPos - points[start].bindPos, glm::vec3(0.0f, 0.0f, 1.0f));
-         Q::quat rotation      = Q::lookRotation(leg_dir, leg_forward) * bind_rotation;
+         Q::quat rotation      = bind_rotation * Q::lookRotation(leg_dir, leg_forward);
 
          // Get knee bend axis
          glm::vec3 old_axis = bind_rotation * glm::vec3(1.0f, 0.0f, 0.0f);
@@ -741,7 +741,7 @@ void AnimatedCharacter::Update()
       float head_look_x = -glm::sin(temp.y);
 
       // Apply head transform
-      display_body.head.transform.rotation = display_body.head.transform.rotation * Q::angleAxis(head_look_x, glm::vec3(1.0f, 0.0f, 0.0f)) * Q::angleAxis(head_look_y, glm::vec3(0.0f, 1.0f, 0.0f));
+      display_body.head.transform.rotation = Q::angleAxis(head_look_y, glm::vec3(0.0f, 1.0f, 0.0f)) * Q::angleAxis(head_look_x, glm::vec3(1.0f, 0.0f, 0.0f)) * display_body.head.transform.rotation;
       if (glm::degrees(head_look_y) > 0.0f)
       {
          // It's important not to take the scale into account here, which is why we use TransformDirection instead of TransformVector
@@ -942,7 +942,7 @@ void AnimatedCharacter::Step(float step, const std::shared_ptr<Window>& window)
             float force = 20.0f;
             // Calculate the forward vector of the chest's triangle
             glm::vec3 forward2 = glm::normalize(glm::cross(rig.mPoints[0].currPos - rig.mPoints[2].currPos, rig.mPoints[0].currPos - rig.mPoints[4].currPos));
-            glm::vec3 flat_forward = glm::normalize(glm::vec3(forward2[0], 0, forward2[2]));
+            glm::vec3 flat_forward = glm::normalize(glm::vec3(forward2[0], 0.0f, forward2[2]));
             // flat_foward is simply the forward vector of the chest's triangle with no Y component, so it's always perfectly aligned with the +X and -X axes
             // Multiplying flat_forward by lean causes the length of the vector to shrink when the character is upright, and to grow when the character is leaning
             // Adding (0, 1, 0) just makes the vector point upwards diagonally 
