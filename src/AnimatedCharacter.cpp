@@ -266,7 +266,7 @@ void AnimatedCharacter::initialize(const std::shared_ptr<Shader>& staticMeshWith
    for (int i = 0; i < num_segments; ++i)
    {
       branches.AddBone(i, i + 1, "branch");
-      mLines.emplace_back(branches.mPoints[i].bindPos, branches.mPoints[i + 1].bindPos, glm::vec3(0.0f, 1.0f, 0.0f));
+      mTerrainLines.emplace_back(branches.mPoints[i].bindPos, branches.mPoints[i + 1].bindPos, glm::vec3(0.0f, 1.0f, 0.0f));
    }
 
    // Set the initial pose
@@ -370,13 +370,22 @@ void AnimatedCharacter::render(const std::shared_ptr<Shader>& staticMeshWithoutU
    mLineShader->use(true);
    mLineShader->setUniformMat4("projectionView", perspectiveProjectionMatrix * viewMatrix);
 
-   // Loop over the lines and render each one
+   // Loop over the terrain lines and render each one
    for (unsigned int i = 0,
-        size = static_cast<unsigned int>(mLines.size());
+        size = static_cast<unsigned int>(mTerrainLines.size());
         i < size;
         ++i)
    {
-      mLines[i].render(mLineShader);
+      mTerrainLines[i].render(mLineShader);
+   }
+
+   // Loop over the debug lines and render each one
+   for (unsigned int i = 0,
+        size = static_cast<unsigned int>(mDebugLines.size());
+        i < size;
+        ++i)
+   {
+      mDebugLines[i].render(mLineShader);
    }
 
    mLineShader->use(false);
@@ -850,7 +859,7 @@ void AnimatedCharacter::Step(float step, const std::shared_ptr<Window>& window)
       simple_vel[0] = MoveTowardsF(simple_vel[0], simple_vel[0] <= 0.0f ? -1.0f : 1.0f, step);
    }
 
-   mLines.emplace_back(simple_pos + glm::vec3(0.0f, 0.5f, 0.0f), simple_pos + glm::vec3(0.0f, 0.5f, 0.0f) + simple_vel, glm::vec3(1.0f, 0.0f, 0.0f));
+   mDebugLines.emplace_back(simple_pos + glm::vec3(0.0f, 0.5f, 0.0f), simple_pos + glm::vec3(0.0f, 0.5f, 0.0f) + simple_vel, glm::vec3(1.0f, 0.0f, 0.0f));
 
    // Smooth out vertical position on branch by checking height forwards and back
    // Smoothing helps make the motion look good at the points where the slope of the terrain changes abruptly
@@ -867,13 +876,13 @@ void AnimatedCharacter::Step(float step, const std::shared_ptr<Window>& window)
    glm::vec3 slope_vec    = normalizeWithZeroLengthCheck(future_pos - simple_pos);
    float slope_speed_mult = glm::abs(slope_vec[0]);
 
-   mLines.emplace_back(simple_pos + glm::vec3(0.0f, 0.6f, 0.0f), simple_pos + glm::vec3(0.0f, 0.6f, 0.0f) + slope_vec, glm::vec3(0.0f, 1.0f, 0.0f));
+   mDebugLines.emplace_back(simple_pos + glm::vec3(0.0f, 0.6f, 0.0f), simple_pos + glm::vec3(0.0f, 0.6f, 0.0f) + slope_vec, glm::vec3(0.0f, 1.0f, 0.0f));
 
    // Apply modified running speed to position
    glm::vec3 effective_vel = simple_vel * slope_speed_mult;
    simple_pos += effective_vel * step;
 
-   mLines.emplace_back(simple_pos + glm::vec3(0.0f, 0.7f, 0.0f), simple_pos + glm::vec3(0.0f, 0.7f, 0.0f) + effective_vel, glm::vec3(0.0f, 0.0f, 1.0f));
+   mDebugLines.emplace_back(simple_pos + glm::vec3(0.0f, 0.7f, 0.0f), simple_pos + glm::vec3(0.0f, 0.7f, 0.0f) + effective_vel, glm::vec3(0.0f, 0.0f, 1.0f));
 
    simple_pos[1] = BranchesHeight(simple_pos[0]);
    simple_vel[1] = 0.0f;
@@ -884,7 +893,7 @@ void AnimatedCharacter::Step(float step, const std::shared_ptr<Window>& window)
    look_target = display_body.head.transform.position + forward * 0.1f;
    look_target += future_pos - past_pos;
 
-   mLines.emplace_back(display_body.head.transform.position, look_target, glm::vec3(1.0f, 1.0f, 0.0f));
+   mDebugLines.emplace_back(display_body.head.transform.position, look_target, glm::vec3(1.0f, 1.0f, 0.0f));
 
    { // Run animation
       // TODO: Compare Unity's Time.time with glfwGetTime()
@@ -925,7 +934,7 @@ void AnimatedCharacter::Step(float step, const std::shared_ptr<Window>& window)
       // move_dir always points to the left (i.e. down the +X axis)
       glm::vec3 move_dir = glm::normalize(left - right);
 
-      mLines.emplace_back(simple_pos + glm::vec3(0.0f, 0.8f, 0.0f), simple_pos + glm::vec3(0.0f, 0.8f, 0.0f) + move_dir, glm::vec3(1.0f, 0.0f, 1.0f));
+      mDebugLines.emplace_back(simple_pos + glm::vec3(0.0f, 0.8f, 0.0f), simple_pos + glm::vec3(0.0f, 0.8f, 0.0f) + move_dir, glm::vec3(1.0f, 0.0f, 1.0f));
 
       { // Simulate the walk simple rig
          VerletSystem& rig = walk.simple_rig;

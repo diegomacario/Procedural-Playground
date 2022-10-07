@@ -109,7 +109,7 @@ void PlayState::processInput()
    }
 #endif
 
-   mAnimatedCharacter.clearLines();
+   mAnimatedCharacter.clearDebugLines();
 }
 
 void PlayState::update(float deltaTime)
@@ -153,6 +153,7 @@ void PlayState::render()
    glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
    glEnable(GL_DEPTH_TEST);
 
+   /*
    if (mDisplayGround)
    {
       mStaticMeshShader->use(true);
@@ -176,6 +177,7 @@ void PlayState::render()
       mGroundTexture->unbind(0);
       mStaticMeshShader->use(false);
    }
+   */
 
    mAnimatedCharacter.render(mStaticMeshWithoutUVsShader, mCamera3.getViewMatrix(), mCamera3.getPerspectiveProjectionMatrix());
 

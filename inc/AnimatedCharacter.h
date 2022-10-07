@@ -74,7 +74,7 @@ public:
    glm::vec3 getVelocity() const { return simple_vel; }
    glm::vec3 getCOM() const;
 
-   void      clearLines() { mLines.clear(); }
+   void      clearDebugLines() { mDebugLines.clear(); }
 
 private:
 
@@ -174,7 +174,8 @@ private:
    // ---
 
    std::shared_ptr<Shader> mLineShader;
-   std::vector<Line>       mLines;
+   std::vector<Line>       mTerrainLines;
+   std::vector<Line>       mDebugLines;
 };
 
 #endif
