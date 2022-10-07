@@ -859,8 +859,6 @@ void AnimatedCharacter::Step(float step, const std::shared_ptr<Window>& window)
       simple_vel[0] = MoveTowardsF(simple_vel[0], simple_vel[0] <= 0.0f ? -1.0f : 1.0f, step);
    }
 
-   mDebugLines.emplace_back(simple_pos + glm::vec3(0.0f, 0.5f, 0.0f), simple_pos + glm::vec3(0.0f, 0.5f, 0.0f) + simple_vel, glm::vec3(1.0f, 0.0f, 0.0f));
-
    // Smooth out vertical position on branch by checking height forwards and back
    // Smoothing helps make the motion look good at the points where the slope of the terrain changes abruptly
    // It makes the height of the character not match the height of the branches at those points
@@ -876,13 +874,9 @@ void AnimatedCharacter::Step(float step, const std::shared_ptr<Window>& window)
    glm::vec3 slope_vec    = normalizeWithZeroLengthCheck(future_pos - simple_pos);
    float slope_speed_mult = glm::abs(slope_vec[0]);
 
-   mDebugLines.emplace_back(simple_pos + glm::vec3(0.0f, 0.6f, 0.0f), simple_pos + glm::vec3(0.0f, 0.6f, 0.0f) + slope_vec, glm::vec3(0.0f, 1.0f, 0.0f));
-
    // Apply modified running speed to position
    glm::vec3 effective_vel = simple_vel * slope_speed_mult;
    simple_pos += effective_vel * step;
-
-   mDebugLines.emplace_back(simple_pos + glm::vec3(0.0f, 0.7f, 0.0f), simple_pos + glm::vec3(0.0f, 0.7f, 0.0f) + effective_vel, glm::vec3(0.0f, 0.0f, 1.0f));
 
    simple_pos[1] = BranchesHeight(simple_pos[0]);
    simple_vel[1] = 0.0f;
@@ -892,8 +886,6 @@ void AnimatedCharacter::Step(float step, const std::shared_ptr<Window>& window)
    glm::vec3 forward = glm::normalize(glm::cross(display.simple_rig.mPoints[4].currPos - display.simple_rig.mPoints[0].currPos, display.simple_rig.mPoints[2].currPos - display.simple_rig.mPoints[0].currPos));
    look_target = display_body.head.transform.position + forward * 0.1f;
    look_target += future_pos - past_pos;
-
-   mDebugLines.emplace_back(display_body.head.transform.position, look_target, glm::vec3(1.0f, 1.0f, 0.0f));
 
    { // Run animation
       // TODO: Compare Unity's Time.time with glfwGetTime()
@@ -933,8 +925,6 @@ void AnimatedCharacter::Step(float step, const std::shared_ptr<Window>& window)
       right[1] = BranchesHeight(right[0]);
       // move_dir always points to the left (i.e. down the +X axis)
       glm::vec3 move_dir = glm::normalize(left - right);
-
-      mDebugLines.emplace_back(simple_pos + glm::vec3(0.0f, 0.8f, 0.0f), simple_pos + glm::vec3(0.0f, 0.8f, 0.0f) + move_dir, glm::vec3(1.0f, 0.0f, 1.0f));
 
       { // Simulate the walk simple rig
          VerletSystem& rig = walk.simple_rig;
@@ -1049,8 +1039,6 @@ void AnimatedCharacter::Step(float step, const std::shared_ptr<Window>& window)
             // It float aboves the ground in front and behind the character, and it sinks in the middle
             walk.limb_targets[2 + i][1] = BranchesHeight(walk.limb_targets[2 + i][0]);
             walk.limb_targets[2 + i][1] += (-glm::sin(walk_time * glm::pi<float>() * 2.0f + glm::pi<float>() * i) + 1.0f) * 0.2f * (glm::pow(glm::abs(effective_vel[0]) + 1.0f, 0.3f) - 1.0f) * (1.0f);
-
-            //DebugDraw.Sphere(walk.limb_targets[2 + i], (i == 0) ? Color.green : Color.red, Vector3.one * 0.05f, Quaternion.identity, DebugDraw.Lifetime.OneFixedUpdate, DebugDraw.Type.Xray);
          }
       }
    }
