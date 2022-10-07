@@ -830,11 +830,11 @@ void AnimatedCharacter::Step(float step, const std::shared_ptr<Window>& window)
    float horz_input = 0.0f;
    if (window->keyIsPressed(GLFW_KEY_D))
    {
-      horz_input = 1.0f; // Move to the right (along the -X direction)
+      horz_input = -1.0f; // Move to the right (along the -X direction)
    }
    if (window->keyIsPressed(GLFW_KEY_A))
    {
-      horz_input = -1.0f; // Move to the left (along the +X direction)
+      horz_input = 1.0f; // Move to the left (along the +X direction)
    }
 
    // Max speed of 7 m/s while running
@@ -847,17 +847,19 @@ void AnimatedCharacter::Step(float step, const std::shared_ptr<Window>& window)
    // Don't allow speed < 1.0 m/s, don't need to worry about idle animations in an endless runner
    if (horz_input == 0.0f && glm::abs(simple_vel[0]) < 1.0f)
    {
-      simple_vel[0] = MoveTowardsF(simple_vel[0], simple_vel[0] >= 0.0f ? 1.0f : -1.0f, step);
+      simple_vel[0] = MoveTowardsF(simple_vel[0], simple_vel[0] <= 0.0f ? -1.0f : 1.0f, step);
    }
+
+   mLines.emplace_back(simple_pos + glm::vec3(0.0f, 0.5f, 0.0f), simple_pos + glm::vec3(0.0f, 0.5f, 0.0f) + simple_vel, glm::vec3(1.0f, 0.0f, 0.0f));
 
    // Smooth out vertical position on branch by checking height forwards and back
    // Smoothing helps make the motion look good at the points where the slope of the terrain changes abruptly
    // It makes the height of the character not match the height of the branches at those points
    // In points like this one: /\ -> The height of the character is lower than the corner
    // In points like this one: \/ -> the height of the character is higher than the corner
-   glm::vec3 future_pos   = simple_pos + simple_vel * -0.1f;
+   glm::vec3 future_pos   = simple_pos + simple_vel * 0.1f;
    future_pos[1]          = BranchesHeight(future_pos[0]);
-   glm::vec3 past_pos     = simple_pos + simple_vel * 0.1f;
+   glm::vec3 past_pos     = simple_pos + simple_vel * -0.1f;
    past_pos[1]            = BranchesHeight(past_pos[0]);
    glm::vec3 smoothed_pos = (future_pos + past_pos + simple_pos) / 3.0f;
 
@@ -865,9 +867,13 @@ void AnimatedCharacter::Step(float step, const std::shared_ptr<Window>& window)
    glm::vec3 slope_vec    = normalizeWithZeroLengthCheck(future_pos - simple_pos);
    float slope_speed_mult = glm::abs(slope_vec[0]);
 
+   mLines.emplace_back(simple_pos + glm::vec3(0.0f, 0.6f, 0.0f), simple_pos + glm::vec3(0.0f, 0.6f, 0.0f) + slope_vec, glm::vec3(0.0f, 1.0f, 0.0f));
+
    // Apply modified running speed to position
    glm::vec3 effective_vel = simple_vel * slope_speed_mult;
-   simple_pos += effective_vel * step * -1.0f;
+   simple_pos += effective_vel * step;
+
+   mLines.emplace_back(simple_pos + glm::vec3(0.0f, 0.7f, 0.0f), simple_pos + glm::vec3(0.0f, 0.7f, 0.0f) + effective_vel, glm::vec3(0.0f, 0.0f, 1.0f));
 
    simple_pos[1] = BranchesHeight(simple_pos[0]);
    simple_vel[1] = 0.0f;
@@ -877,6 +883,8 @@ void AnimatedCharacter::Step(float step, const std::shared_ptr<Window>& window)
    glm::vec3 forward = glm::normalize(glm::cross(display.simple_rig.mPoints[4].currPos - display.simple_rig.mPoints[0].currPos, display.simple_rig.mPoints[2].currPos - display.simple_rig.mPoints[0].currPos));
    look_target = display_body.head.transform.position + forward * 0.1f;
    look_target += future_pos - past_pos;
+
+   mLines.emplace_back(display_body.head.transform.position, look_target, glm::vec3(1.0f, 1.0f, 0.0f));
 
    { // Run animation
       // TODO: Compare Unity's Time.time with glfwGetTime()
@@ -914,8 +922,10 @@ void AnimatedCharacter::Step(float step, const std::shared_ptr<Window>& window)
       glm::vec3 right = simple_pos - glm::vec3(0.1f, 0.0f, 0.0f);
       left[1] = BranchesHeight(left[0]);
       right[1] = BranchesHeight(right[0]);
-      // move_dir always points to the right (i.e. down the +X axis)
-      glm::vec3 move_dir = glm::normalize(right - left);
+      // move_dir always points to the left (i.e. down the +X axis)
+      glm::vec3 move_dir = glm::normalize(left - right);
+
+      mLines.emplace_back(simple_pos + glm::vec3(0.0f, 0.8f, 0.0f), simple_pos + glm::vec3(0.0f, 0.8f, 0.0f) + move_dir, glm::vec3(1.0f, 0.0f, 1.0f));
 
       { // Simulate the walk simple rig
          VerletSystem& rig = walk.simple_rig;
@@ -967,8 +977,8 @@ void AnimatedCharacter::Step(float step, const std::shared_ptr<Window>& window)
             rig.mPoints[0].currPos += step_sqrd * top_force * 0.5f; // Right shoulder
             rig.mPoints[2].currPos += step_sqrd * top_force * 0.5f; // Left shoulder
             // These two lines are what make the character look forward when it moves. Without them, the character walks sideways
-            rig.mPoints[0].currPos[2] -= step_sqrd * effective_vel[0] * 2.0f; // Right shoulder
-            rig.mPoints[2].currPos[2] += step_sqrd * effective_vel[0] * 2.0f; // Left shoulder
+            rig.mPoints[0].currPos[2] += step_sqrd * effective_vel[0] * 2.0f; // Right shoulder
+            rig.mPoints[2].currPos[2] -= step_sqrd * effective_vel[0] * 2.0f; // Left shoulder
 
             // Add rotational force to body if needed
             // This is what makes the chest sway from side to side (i.e. rotate around the Z axis)

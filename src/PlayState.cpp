@@ -109,7 +109,7 @@ void PlayState::processInput()
    }
 #endif
 
-   //mAnimatedCharacter.clearLines();
+   mAnimatedCharacter.clearLines();
 }
 
 void PlayState::update(float deltaTime)
@@ -124,7 +124,7 @@ void PlayState::update(float deltaTime)
    mAnimatedCharacter.Update();
 
    glm::vec3 playerCOM = mAnimatedCharacter.getCOM();
-   glm::vec3 adjustedPlayerPos(playerCOM[0] + mAnimatedCharacter.getVelocity()[0] * -0.1f, playerCOM[1], 0.0f);
+   glm::vec3 adjustedPlayerPos(playerCOM[0] + mAnimatedCharacter.getVelocity()[0] * 0.1f, playerCOM[1], 0.0f);
    mCamera3.processPlayerMovement(adjustedPlayerPos, Q::angleAxis(glm::radians(180.0f), glm::vec3(0.0f, 1.0f, 0.0f)));
 
    mStaticMeshWithoutUVsShader->use(true);
@@ -153,7 +153,6 @@ void PlayState::render()
    glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
    glEnable(GL_DEPTH_TEST);
 
-   /*
    if (mDisplayGround)
    {
       mStaticMeshShader->use(true);
@@ -177,7 +176,6 @@ void PlayState::render()
       mGroundTexture->unbind(0);
       mStaticMeshShader->use(false);
    }
-   */
 
    mAnimatedCharacter.render(mStaticMeshWithoutUVsShader, mCamera3.getViewMatrix(), mCamera3.getPerspectiveProjectionMatrix());
 
