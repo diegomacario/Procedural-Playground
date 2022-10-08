@@ -1029,10 +1029,9 @@ void AnimatedCharacter::Step(float step, const std::shared_ptr<Window>& window)
          for (int i = 0; i < 2; ++i)
          {
             float offset = glm::mix(gallop_offset, quad_gallop_offset, quad_amount);
-            float time_val = walk_time * glm::pi<float>() * 2.0f + glm::pi<float>() * i * offset;
             walk.limb_targets[2 + i] = simple_pos;
             // This vector points in the movement direction. Note how it's length depends on the effective velocity. That causes the strides to shorten or lengthen depending on the velocity of the character
-            walk.limb_targets[2 + i] += (move_dir * (glm::cos(walk_time * glm::pi<float>() * 2.0f + glm::pi<float>() * i)) * 0.2f - 0.03f) * effective_vel[0] / speed_mult;
+            walk.limb_targets[2 + i] += (move_dir * (glm::cos(walk_time * glm::pi<float>() * 2.0f + glm::pi<float>() * i)) * 0.2f) * effective_vel[0] / speed_mult;
             // This vector points from the left shoulder to the right shoulder for the right foot, and in the opposite direction for the left foot
             walk.limb_targets[2 + i] += (rig.mPoints[0].currPos - rig.mPoints[2].currPos) * (1.0f - 2.0f * i) * (0.3f);
             // The height of the target matches the height of the branch
