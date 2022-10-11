@@ -8,6 +8,7 @@
 #include "texture.h"
 #include "AnimatedMesh.h"
 #include "AnimatedCharacter.h"
+#include "DecalRenderer.h"
 
 class PlayState : public State
 {
@@ -44,6 +45,11 @@ private:
 
    void resetCamera();
 
+   void loadModels();
+
+   void renderWorld();
+   void renderNormalsAndDepth();
+
    std::shared_ptr<FiniteStateMachine> mFSM;
 
    std::shared_ptr<Window>             mWindow;
@@ -63,6 +69,24 @@ private:
 #ifndef __EMSCRIPTEN__
    bool                                mPause = false;
 #endif
+
+   std::shared_ptr<Shader>             mNormalAndDepthShader;
+   std::vector<AnimatedMesh>           mPlaneMeshes;
+   std::shared_ptr<Texture>            mPlaneTexture;
+   std::vector<AnimatedMesh>           mNormalPlaneMeshes;
+   Transform                           mPlaneModelTransform;
+   std::shared_ptr<DecalRenderer>      mDecalRenderer;
+
+   int                                 mMaxNumDecals = 100;
+   float                               mCurrentDecalScale = 1.0f;
+   float                               mSelectedDecalScale = 0.1f;
+   float                               mDecalNormalThreshold = 89.0f;
+   float                               mCurrentDelayBetweenCircles = 0.1f;
+   float                               mSelectedDelayBetweenCircles = 0.1f;
+   float                               mCurrentDecalBounce = 4.5f;
+   float                               mSelectedDecalBounce = 4.5f;
+   bool                                mDisplayDecalOBBs = false;
+   bool                                mDisplayDiscardedDecalParts = false;
 };
 
 #endif

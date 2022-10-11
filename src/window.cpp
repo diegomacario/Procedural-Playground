@@ -129,6 +129,7 @@ bool Window::initialize()
 #endif
 
    glEnable(GL_CULL_FACE);
+   glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 
 #ifndef __EMSCRIPTEN__
    glEnable(GL_LINE_SMOOTH);
@@ -634,4 +635,9 @@ void Window::updateBufferAndViewportSizes(int widthOfFramebufferInPix, int heigh
 #ifdef __EMSCRIPTEN__
    emscripten_set_element_css_size("canvas", getCanvasWidth(), getCanvasHeight());
 #endif
+
+   if (mDecalRenderer)
+   {
+      mDecalRenderer->resizeTextures(mWidthOfFramebufferInPix, mHeightOfFramebufferInPix);
+   }
 }

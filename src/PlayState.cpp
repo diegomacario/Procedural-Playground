@@ -18,6 +18,8 @@ PlayState::PlayState(const std::shared_ptr<FiniteStateMachine>& finiteStateMachi
    : mFSM(finiteStateMachine)
    , mWindow(window)
    , mCamera3(4.0f, 0.0f, glm::vec3(0.0f), Q::angleAxis(glm::radians(180.0f), glm::vec3(0.0f, 1.0f, 0.0f)), glm::vec3(0.0f, 0.0f, 0.0f), 0.0f, 20.0f, 0.0f, 90.0f, 45.0f, 1280.0f / 720.0f, 0.1f, 130.0f, 0.25f)
+   , mDecalRenderer(std::make_shared<DecalRenderer>(window->getWidthOfFramebufferInPix(), window->getHeightOfFramebufferInPix()))
+   , mPlaneModelTransform(glm::vec3(0.0f), Q::quat(), glm::vec3(1000.0f, 1.0f, 1000.0f))
 {
    mStaticMeshShader = ResourceManager<Shader>().loadUnmanagedResource<ShaderLoader>("resources/shaders/static_mesh.vert",
                                                                                      "resources/shaders/ambient_diffuse_illumination.frag");
@@ -30,6 +32,15 @@ PlayState::PlayState(const std::shared_ptr<FiniteStateMachine>& finiteStateMachi
    mAnimatedCharacter.initialize(mStaticMeshWithoutUVsShader);
 
    loadGround();
+
+   // Initialize the normal and depth shader
+   mNormalAndDepthShader = ResourceManager<Shader>().loadUnmanagedResource<ShaderLoader>("resources/shaders/normal_and_depth.vert", "resources/shaders/normal_and_depth.frag");
+
+   loadModels();
+
+   mWindow->setDecalRenderer(mDecalRenderer);
+
+   mAnimatedCharacter.setDecalRenderer(mDecalRenderer);
 }
 
 void PlayState::initializeState()
@@ -131,6 +142,30 @@ void PlayState::update(float deltaTime)
    mStaticMeshWithoutUVsShader->setUniformVec3("pointLights[0].worldPos", glm::vec3(mAnimatedCharacter.getPosition().x, 2.0f, 10.0f));
    mStaticMeshWithoutUVsShader->setUniformVec3("pointLights[1].worldPos", glm::vec3(mAnimatedCharacter.getPosition().x, 2.0f, -10.0f));
    mStaticMeshWithoutUVsShader->use(false);
+
+   mDecalRenderer->setMaxNumDecals(mMaxNumDecals);
+
+   if (mSelectedDecalScale != mCurrentDecalScale)
+   {
+      mDecalRenderer->setDecalScale(mSelectedDecalScale);
+      mCurrentDecalScale = mSelectedDecalScale;
+   }
+
+   if (mSelectedDelayBetweenCircles != mCurrentDelayBetweenCircles)
+   {
+      mDecalRenderer->setDelayBetweenCircles(mSelectedDelayBetweenCircles);
+      mCurrentDelayBetweenCircles = mSelectedDelayBetweenCircles;
+   }
+
+   if (mSelectedDecalBounce != mCurrentDecalBounce)
+   {
+      mDecalRenderer->setDecalBounce(mSelectedDecalBounce);
+      mCurrentDecalBounce = mSelectedDecalBounce;
+   }
+
+   mDecalRenderer->setNormalThreshold(mDecalNormalThreshold);
+
+   mDecalRenderer->updateDecals(1.0f);
 }
 
 void PlayState::fixedUpdate()
@@ -145,6 +180,12 @@ void PlayState::render()
    ImGui::NewFrame();
 
    userInterface();
+
+   // Render the depth and normal textures
+   mDecalRenderer->bindDecalFBO();
+   glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+   renderNormalsAndDepth();
+   mDecalRenderer->unbindDecalFBO();
 
 #ifndef __EMSCRIPTEN__
    mWindow->bindMultisampleFramebuffer();
@@ -178,6 +219,13 @@ void PlayState::render()
       mStaticMeshShader->use(false);
    }
    */
+
+   //renderWorld();
+   glDisable(GL_DEPTH_TEST);
+   glEnable(GL_BLEND);
+   mDecalRenderer->renderDecals(mCamera3.getViewMatrix(), mCamera3.getPerspectiveProjectionMatrix(), false, false);
+   glDisable(GL_BLEND);
+   glEnable(GL_DEPTH_TEST);
 
    mAnimatedCharacter.render(mStaticMeshWithoutUVsShader, mCamera3.getViewMatrix(), mCamera3.getPerspectiveProjectionMatrix());
 
@@ -264,6 +312,7 @@ void PlayState::userInterface()
 //   }
 //#endif
 
+   /*
    if (ImGui::CollapsingHeader("Controls", nullptr, ImGuiTreeNodeFlags_DefaultOpen))
    {
       ImGui::BulletText("Hold the left mouse button and move the mouse\n"
@@ -274,11 +323,38 @@ void PlayState::userInterface()
       ImGui::BulletText("Press the R key to reset the camera.");
 #endif
    }
+   */
 
-   //if (ImGui::CollapsingHeader("Settings", nullptr, ImGuiTreeNodeFlags_DefaultOpen))
-   //{
-   //   ImGui::Checkbox("Display Ground", &mDisplayGround);
-   //}
+   if (ImGui::CollapsingHeader("Settings", nullptr, ImGuiTreeNodeFlags_DefaultOpen))
+   {
+      if (ImGui::InputInt("Max num decals", &mMaxNumDecals, 1, 1, ImGuiInputTextFlags_EnterReturnsTrue))
+      {
+         if (mMaxNumDecals < 1)
+         {
+            mMaxNumDecals = 1;
+         }
+         else if (mMaxNumDecals > 1000)
+         {
+            mMaxNumDecals = 1000;
+         }
+      }
+
+      ImGui::SliderFloat("Decal scale", &mSelectedDecalScale, 0.1f, 3.0f, "%.3f");
+
+      ImGui::SliderFloat("Animation delay", &mSelectedDelayBetweenCircles, 0.0f, 1.0f, "%.3f");
+
+      ImGui::SliderFloat("Animation bounce", &mSelectedDecalBounce, 0.0f, 10.0f, "%.3f");
+
+#ifndef __EMSCRIPTEN__
+      ImGui::SliderFloat("Decal normal threshold", &mDecalNormalThreshold, 0.0f, 180.0f, "%.3f");
+#endif
+
+      ImGui::Checkbox("Display decal OBBs", &mDisplayDecalOBBs);
+
+#ifndef __EMSCRIPTEN__
+      ImGui::Checkbox("Display discarded decal parts", &mDisplayDiscardedDecalParts);
+#endif
+   }
 
    ImGui::End();
 }
@@ -292,4 +368,93 @@ void PlayState::resetCamera()
 {
    mCamera3.reposition(4.0f, 0.0f, glm::vec3(0.0f, 0.0f, 0.0f), Q::angleAxis(glm::radians(180.0f), glm::vec3(0.0f, 1.0f, 0.0f)), glm::vec3(0.0f, 0.0f, 0.0f), 0.0f, 20.0f, 0.0f, 90.0f);
    mCamera3.processMouseMovement(180.0f / 0.25f, 0.0f);
+}
+
+void PlayState::loadModels()
+{
+   // Load the texture of the plane
+   mPlaneTexture = ResourceManager<Texture>().loadUnmanagedResource<TextureLoader>("resources/models/plane/plane.png");
+
+   // Load the plane
+   cgltf_data* data = LoadGLTFFile("resources/models/plane/world_plane.glb");
+   mPlaneMeshes = LoadStaticMeshes(data);
+   FreeGLTFFile(data);
+
+   // Load the normal plane
+   data = LoadGLTFFile("resources/models/plane/world_plane.glb");
+   mNormalPlaneMeshes = LoadStaticMeshes(data);
+   FreeGLTFFile(data);
+
+   int positionsAttribLoc = mStaticMeshShader->getAttributeLocation("position");
+   int normalsAttribLoc   = mStaticMeshShader->getAttributeLocation("normal");
+   int texCoordsAttribLoc = mStaticMeshShader->getAttributeLocation("texCoord");
+
+   for (unsigned int i = 0,
+        size = static_cast<unsigned int>(mPlaneMeshes.size());
+        i < size;
+        ++i)
+   {
+      mPlaneMeshes[i].ConfigureVAO(positionsAttribLoc,
+                                   normalsAttribLoc,
+                                   texCoordsAttribLoc,
+                                   -1,
+                                   -1);
+   }
+
+   positionsAttribLoc = mNormalAndDepthShader->getAttributeLocation("position");
+   normalsAttribLoc   = mNormalAndDepthShader->getAttributeLocation("normal");
+   texCoordsAttribLoc = mNormalAndDepthShader->getAttributeLocation("texCoord");
+
+   for (unsigned int i = 0,
+        size = static_cast<unsigned int>(mNormalPlaneMeshes.size());
+        i < size;
+        ++i)
+   {
+      mNormalPlaneMeshes[i].ConfigureVAO(positionsAttribLoc,
+                                         normalsAttribLoc,
+                                         texCoordsAttribLoc,
+                                         -1,
+                                         -1);
+   }
+}
+
+void PlayState::renderWorld()
+{
+   mStaticMeshShader->use(true);
+   mStaticMeshShader->setUniformMat4("model",      transformToMat4(mPlaneModelTransform));
+   mStaticMeshShader->setUniformMat4("view",       mCamera3.getViewMatrix());
+   mStaticMeshShader->setUniformMat4("projection", mCamera3.getPerspectiveProjectionMatrix());
+   mPlaneTexture->bind(0, mStaticMeshShader->getUniformLocation("diffuseTex"));
+
+   // Loop over the plane meshes and render each one
+   for (unsigned int i = 0,
+        size = static_cast<unsigned int>(mPlaneMeshes.size());
+        i < size;
+        ++i)
+   {
+      mPlaneMeshes[i].Render();
+   }
+
+   mPlaneTexture->unbind(0);
+   mStaticMeshShader->use(false);
+}
+
+void PlayState::renderNormalsAndDepth()
+{
+   mNormalAndDepthShader->use(true);
+   mNormalAndDepthShader->setUniformMat4("model",      transformToMat4(mPlaneModelTransform));
+   mNormalAndDepthShader->setUniformMat4("view",       mCamera3.getViewMatrix());
+   mNormalAndDepthShader->setUniformMat4("projection", mCamera3.getPerspectiveProjectionMatrix());
+   mNormalAndDepthShader->setUniformMat3("normalMat",  glm::mat3(1.0f));
+
+   // Loop over the normal plane meshes and render each one
+   for (unsigned int i = 0,
+        size = static_cast<unsigned int>(mNormalPlaneMeshes.size());
+        i < size;
+        ++i)
+   {
+      mNormalPlaneMeshes[i].Render();
+   }
+
+   mNormalAndDepthShader->use(false);
 }

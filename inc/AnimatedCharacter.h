@@ -76,6 +76,8 @@ public:
 
    void      clearDebugLines() { mDebugLines.clear(); }
 
+   void      setDecalRenderer(const std::shared_ptr<DecalRenderer>& decalRenderer) { mDecalRenderer = decalRenderer; }
+
 private:
 
    void      load(const std::shared_ptr<Shader>& staticMeshWithoutUVsShader);
@@ -176,6 +178,14 @@ private:
    std::shared_ptr<Shader> mLineShader;
    std::vector<Line>       mTerrainLines;
    std::vector<Line>       mDebugLines;
+
+   std::shared_ptr<DecalRenderer> mDecalRenderer;
+
+   float mLowestLeftFoot = 10.0f;
+   float mLowestRightFoot = 10.0f;
+
+   bool  mLeftFootCanPlaceDecal = true;
+   bool  mRightFootCanPlaceDecal = true;
 };
 
 #endif

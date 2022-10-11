@@ -370,6 +370,7 @@ void AnimatedCharacter::render(const std::shared_ptr<Shader>& staticMeshWithoutU
    mLineShader->use(true);
    mLineShader->setUniformMat4("projectionView", perspectiveProjectionMatrix * viewMatrix);
 
+   /*
    // Loop over the terrain lines and render each one
    for (unsigned int i = 0,
         size = static_cast<unsigned int>(mTerrainLines.size());
@@ -378,6 +379,7 @@ void AnimatedCharacter::render(const std::shared_ptr<Shader>& staticMeshWithoutU
    {
       mTerrainLines[i].render(mLineShader);
    }
+   */
 
    // Loop over the debug lines and render each one
    for (unsigned int i = 0,
@@ -790,6 +792,44 @@ void AnimatedCharacter::Update()
    mCurrentPose.SetLocalTransform(display_body.leg_bottom_l.joint_index, combine(inverseBaseTransform, display_body.leg_bottom_l.transform));
    mCurrentPose.SetLocalTransform(display_body.leg_top_r.joint_index,    combine(inverseBaseTransform, display_body.leg_top_r.transform));
    mCurrentPose.SetLocalTransform(display_body.leg_bottom_r.joint_index, combine(inverseBaseTransform, display_body.leg_bottom_r.transform));
+
+   Transform leftFootWorldTransf;
+   found = mBaseSkeleton.GetJointIndex("DEF-foot_L", jointIndex);
+   if (found) { leftFootWorldTransf = mCurrentPose.GetGlobalTransform(jointIndex); }
+   else { std::cout << "Couldn't find joint: " << "DEF-foot_L" << '\n'; }
+
+   Transform rightFootWorldTransf;
+   found = mBaseSkeleton.GetJointIndex("DEF-foot_R", jointIndex);
+   if (found) { rightFootWorldTransf = mCurrentPose.GetGlobalTransform(jointIndex); }
+   else { std::cout << "Couldn't find joint: " << "DEF-foot_R" << '\n'; }
+
+   if (leftFootWorldTransf.position.y < 0.05 && mLeftFootCanPlaceDecal)
+   {
+      mDecalRenderer->addDecal(leftFootWorldTransf.position, glm::vec3(0.0f, 1.0f, 0.0f));
+      //mLowestLeftFoot = leftFootWorldTransf.position.y;
+      mLeftFootCanPlaceDecal = false;
+   }
+
+   if (rightFootWorldTransf.position.y < 0.05 && mRightFootCanPlaceDecal)
+   {
+      mDecalRenderer->addDecal(rightFootWorldTransf.position, glm::vec3(0.0f, 1.0f, 0.0f));
+      //mLowestRightFoot = rightFootWorldTransf.position.y;
+      mRightFootCanPlaceDecal = false;
+   }
+
+   if (leftFootWorldTransf.position.y > 0.05 && !mLeftFootCanPlaceDecal)
+   {
+      mLeftFootCanPlaceDecal = true;
+   }
+
+   if (rightFootWorldTransf.position.y > 0.05 && !mRightFootCanPlaceDecal)
+   {
+      mRightFootCanPlaceDecal = true;
+   }
+
+   //std::cout << "Left:  " << mLowestLeftFoot << '\n';
+   //std::cout << "Right: " << mLowestRightFoot << '\n';
+   //std::cout << "\n";
 }
 
 float AnimatedCharacter::MoveTowardsF(float a, float b, float max_dist)
