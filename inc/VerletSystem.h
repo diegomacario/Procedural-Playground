@@ -6,6 +6,8 @@
 #include <string>
 #include <vector>
 
+#include "Line.h"
+
 class VerletSystem
 {
 public:
@@ -14,7 +16,7 @@ public:
 
    void AddPoint(const glm::vec3& pos, const std::string& name);
    void AddBone(int indexOfPointA, int indexOfPointB, const std::string& name);
-   void DrawBones(const glm::vec3& color);
+   void DrawBones(const std::shared_ptr<Shader>& lineShader, const glm::vec3& color);
    void StartSim(float step);
    void EnforceDistanceConstraints();
    void EndSim();
@@ -41,6 +43,7 @@ public:
 
    std::vector<Point> mPoints;
    std::vector<Bone>  mBones;
+   std::vector<Line>  mBoneLines;
 };
 
 #endif

@@ -388,6 +388,12 @@ void AnimatedCharacter::render(const std::shared_ptr<Shader>& staticMeshWithoutU
       mDebugLines[i].render(mLineShader);
    }
 
+   glDisable(GL_DEPTH_TEST);
+   //walk.simple_rig.DrawBones(mLineShader, glm::vec3(1.0f, 0.0f, 0.0f));
+   //display.simple_rig.DrawBones(mLineShader, glm::vec3(0.0f, 1.0f, 0.0f));
+   complete.DrawBones(mLineShader, glm::vec3(1.0f, 1.0f, 0.0f));
+   glEnable(GL_DEPTH_TEST);
+
    mLineShader->use(false);
 }
 

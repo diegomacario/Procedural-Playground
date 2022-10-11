@@ -24,17 +24,27 @@ void VerletSystem::AddBone(int indexOfPointA, int indexOfPointB, const std::stri
    mBones.push_back(bone);
 }
 
-void VerletSystem::DrawBones(const glm::vec3& color)
+void VerletSystem::DrawBones(const std::shared_ptr<Shader>& lineShader, const glm::vec3& color)
 {
+   // Update the bone lines
+   mBoneLines.clear();
    for(int i = 0; i < mBones.size(); ++i)
    {
       if (mBones[i].enabled)
       {
-         // TODO: Implement system for drawing lines
-         //DebugDraw.Line(mPoints[mBones[i].pointIndices[0]].currPos,
-         //               mPoints[mBones[i].pointIndices[1]].currPos,
-         //               color);
+         mBoneLines.emplace_back(mPoints[mBones[i].pointIndices[0]].currPos,
+                                 mPoints[mBones[i].pointIndices[1]].currPos,
+                                 color);
       }
+   }
+
+   // Loop over the bone lines and render each one
+   for (unsigned int i = 0,
+        size = static_cast<unsigned int>(mBoneLines.size());
+        i < size;
+        ++i)
+   {
+      mBoneLines[i].render(lineShader);
    }
 }
 
