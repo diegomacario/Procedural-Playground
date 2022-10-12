@@ -176,6 +176,7 @@ private:
    std::shared_ptr<Shader> mLineShader;
    std::vector<Line>       mTerrainLines;
    std::vector<Line>       mDebugLines;
+   std::vector<Line>       mSkeletonLines;
 };
 
 #endif

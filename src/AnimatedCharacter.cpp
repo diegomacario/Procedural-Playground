@@ -333,7 +333,7 @@ void AnimatedCharacter::render(const std::shared_ptr<Shader>& staticMeshWithoutU
    staticMeshWithoutUVsShader->setUniformMat4("projection", perspectiveProjectionMatrix);
 
    // Loop over the character meshes and render each one
-   glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
+   //glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
    for (unsigned int i = 0,
       size = static_cast<unsigned int>(mMeshes.size());
       i < size;
@@ -346,7 +346,7 @@ void AnimatedCharacter::render(const std::shared_ptr<Shader>& staticMeshWithoutU
 
       mMeshes[i].Render();
    }
-   glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
+   //glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
 
    // Loop over the points meshes and render each one
    /*
@@ -394,6 +394,16 @@ void AnimatedCharacter::render(const std::shared_ptr<Shader>& staticMeshWithoutU
    //walk.simple_rig.DrawBones(mLineShader, glm::vec3(1.0f, 0.0f, 0.0f));
    //display.simple_rig.DrawBones(mLineShader, glm::vec3(0.0f, 1.0f, 0.0f));
    complete.DrawBones(mLineShader, glm::vec3(1.0f, 1.0f, 0.0f));
+
+   // Loop over the skeleton lines and render each one
+   //for (unsigned int i = 0,
+   //     size = static_cast<unsigned int>(mSkeletonLines.size());
+   //     i < size;
+   //     ++i)
+   //{
+   //   mSkeletonLines[i].render(mLineShader);
+   //}
+
    //glEnable(GL_DEPTH_TEST);
 
    mLineShader->use(false);
@@ -567,6 +577,8 @@ void AnimatedCharacter::Update()
    // At this point the step function has already been called, so the display rig has been updated
    // The point of the Update function is to update the complete rig and then the display_body
 
+   mSkeletonLines.clear();
+
    // Here we update the complete rig using the simple rig
    { // Use "arms" rig to drive full body IK rig
       const std::vector<VerletSystem::Point>& points = display.simple_rig.mPoints;
@@ -724,6 +736,9 @@ void AnimatedCharacter::Update()
          // old_axis = elbow's bind space axis of rotation
          // axis     = elbow's world space axis of rotation
          ApplyTwoBoneIK(start_id, end_id, forward, arm_ik, top, bottom, complete.mPoints, old_axis, axis);
+
+         mSkeletonLines.emplace_back(points[start_id].currPos, bottom.transform.position, glm::vec3(1.0f, 0.0f, 0.0f));
+         mSkeletonLines.emplace_back(points[end_id].currPos, bottom.transform.position, glm::vec3(1.0f, 0.0f, 0.0f));
       }
 
       // Leg IK
@@ -755,6 +770,9 @@ void AnimatedCharacter::Update()
          glm::vec3 axis     = rotation * glm::vec3(1.0f, 0.0f, 0.0f);
 
          ApplyTwoBoneIK(start, end, leg_forward, leg_ik, top, bottom, complete.mPoints, old_axis, axis);
+
+         mSkeletonLines.emplace_back(points[start].currPos, bottom.transform.position, glm::vec3(1.0f, 0.0f, 0.0f));
+         mSkeletonLines.emplace_back(points[end].currPos, bottom.transform.position, glm::vec3(1.0f, 0.0f, 0.0f));
       }
 
       // Head look
@@ -779,6 +797,14 @@ void AnimatedCharacter::Update()
          display_body.head.transform.position = display_body.head.transform.position + ((transformDirection(display_body.head.transform, glm::vec3(1.0f, 0.0f, 0.0f))) * glm::degrees(head_look_y) * -0.001f);
       }
    }
+
+   for (int i = 2; i < complete.mBones.size() - 2; ++i)
+   {
+      mSkeletonLines.emplace_back(complete.mPoints[complete.mBones[i].pointIndices[0]].currPos, complete.mPoints[complete.mBones[i].pointIndices[1]].currPos, glm::vec3(1.0f, 0.0f, 0.0f));
+   }
+
+   mSkeletonLines.emplace_back(complete.mPoints[0].currPos, complete.mPoints[2].currPos, glm::vec3(1.0f, 0.0f, 0.0f));
+   mSkeletonLines.emplace_back(complete.mPoints[10].currPos, complete.mPoints[12].currPos, glm::vec3(1.0f, 0.0f, 0.0f));
 
    // Update the pose
    unsigned int jointIndex = 0;
