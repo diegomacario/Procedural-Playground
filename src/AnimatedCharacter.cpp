@@ -333,6 +333,7 @@ void AnimatedCharacter::render(const std::shared_ptr<Shader>& staticMeshWithoutU
    staticMeshWithoutUVsShader->setUniformMat4("projection", perspectiveProjectionMatrix);
 
    // Loop over the character meshes and render each one
+   glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
    for (unsigned int i = 0,
       size = static_cast<unsigned int>(mMeshes.size());
       i < size;
@@ -345,6 +346,7 @@ void AnimatedCharacter::render(const std::shared_ptr<Shader>& staticMeshWithoutU
 
       mMeshes[i].Render();
    }
+   glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
 
    // Loop over the points meshes and render each one
    /*
@@ -388,11 +390,11 @@ void AnimatedCharacter::render(const std::shared_ptr<Shader>& staticMeshWithoutU
       mDebugLines[i].render(mLineShader);
    }
 
-   glDisable(GL_DEPTH_TEST);
+   //glDisable(GL_DEPTH_TEST);
    //walk.simple_rig.DrawBones(mLineShader, glm::vec3(1.0f, 0.0f, 0.0f));
    //display.simple_rig.DrawBones(mLineShader, glm::vec3(0.0f, 1.0f, 0.0f));
    complete.DrawBones(mLineShader, glm::vec3(1.0f, 1.0f, 0.0f));
-   glEnable(GL_DEPTH_TEST);
+   //glEnable(GL_DEPTH_TEST);
 
    mLineShader->use(false);
 }
