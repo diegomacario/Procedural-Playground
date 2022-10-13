@@ -15,7 +15,7 @@ Line::Line(glm::vec3        startPoint,
    : mStartPoint(startPoint)
    , mEndPoint(endPoint)
    , mPosition(glm::vec3(0.0f))
-   , mRotation(Q::quat())
+   , mRotation(glm::quat())
    , mScalingFactor(1.0f)
    , mColor(color)
    , mModelMatrix(1.0f)
@@ -37,7 +37,7 @@ Line::Line(glm::vec3        startPoint,
    : mStartPoint(startPoint)
    , mEndPoint(endPoint)
    , mPosition(position)
-   , mRotation(Q::angleAxis(glm::radians(angleOfRotInDeg), axisOfRot))
+   , mRotation(glm::angleAxis(glm::radians(angleOfRotInDeg), axisOfRot))
    , mScalingFactor(scalingFactor != 0.0f ? scalingFactor : 1.0f)
    , mColor(color)
    , mModelMatrix(1.0f)
@@ -59,7 +59,7 @@ Line::Line(Line&& rhs) noexcept
    : mStartPoint(std::exchange(rhs.mStartPoint, glm::vec3(0.0f)))
    , mEndPoint(std::exchange(rhs.mEndPoint, glm::vec3(0.0f)))
    , mPosition(std::exchange(rhs.mPosition, glm::vec3(0.0f)))
-   , mRotation(std::exchange(rhs.mRotation, Q::quat()))
+   , mRotation(std::exchange(rhs.mRotation, glm::quat()))
    , mScalingFactor(std::exchange(rhs.mScalingFactor, 1.0f))
    , mColor(std::exchange(rhs.mColor, glm::vec3(0.0f)))
    , mModelMatrix(std::exchange(rhs.mModelMatrix, glm::mat4(1.0f)))
@@ -75,7 +75,7 @@ Line& Line::operator=(Line&& rhs) noexcept
    mStartPoint = std::exchange(rhs.mStartPoint, glm::vec3(0.0f));
    mEndPoint = std::exchange(rhs.mEndPoint, glm::vec3(0.0f));
    mPosition = std::exchange(rhs.mPosition, glm::vec3(0.0f));
-   mRotation = std::exchange(rhs.mRotation, Q::quat());
+   mRotation = std::exchange(rhs.mRotation, glm::quat());
    mScalingFactor = std::exchange(rhs.mScalingFactor, 1.0f);
    mColor = std::exchange(rhs.mColor, glm::vec3(0.0f));
    mModelMatrix = std::exchange(rhs.mModelMatrix, glm::mat4(1.0f));
@@ -129,7 +129,7 @@ float Line::getScalingFactor() const
    return mScalingFactor;
 }
 
-void Line::setRotation(const Q::quat& rotation)
+void Line::setRotation(const glm::quat& rotation)
 {
    mRotation = rotation;
    mCalculateModelMatrix = true;
@@ -141,13 +141,13 @@ void Line::translate(const glm::vec3& translation)
    mCalculateModelMatrix = true;
 }
 
-void Line::rotateByMultiplyingCurrentRotationFromTheLeft(const Q::quat& rotation)
+void Line::rotateByMultiplyingCurrentRotationFromTheLeft(const glm::quat& rotation)
 {
    mRotation = rotation * mRotation;
    mCalculateModelMatrix = true;
 }
 
-void Line::rotateByMultiplyingCurrentRotationFromTheRight(const Q::quat& rotation)
+void Line::rotateByMultiplyingCurrentRotationFromTheRight(const glm::quat& rotation)
 {
    mRotation = mRotation * rotation;
    mCalculateModelMatrix = true;
@@ -168,7 +168,7 @@ void Line::calculateModelMatrix() const
    mModelMatrix = glm::translate(glm::mat4(1.0f), mPosition);
 
    // 2) Rotate the model
-   mModelMatrix *= quatToMat4(mRotation);
+   mModelMatrix *= glm::mat4_cast(mRotation);
 
    // 1) Scale the model
    mModelMatrix = glm::scale(mModelMatrix, glm::vec3(mScalingFactor));

@@ -2,11 +2,11 @@
 #define LINE_H
 
 #include <glm/glm.hpp>
+#include <glm/gtc/quaternion.hpp>
 
 #include <memory>
 
 #include "shader.h"
-#include "quat.h"
 
 class Line
 {
@@ -42,11 +42,11 @@ public:
 
    float     getScalingFactor() const;
 
-   void      setRotation(const Q::quat& rotation);
+   void      setRotation(const glm::quat& rotation);
 
    void      translate(const glm::vec3& translation);
-   void      rotateByMultiplyingCurrentRotationFromTheLeft(const Q::quat& rotation);
-   void      rotateByMultiplyingCurrentRotationFromTheRight(const Q::quat& rotation);
+   void      rotateByMultiplyingCurrentRotationFromTheLeft(const glm::quat& rotation);
+   void      rotateByMultiplyingCurrentRotationFromTheRight(const glm::quat& rotation);
    void      scale(float scalingFactor);
 
 private:
@@ -60,7 +60,7 @@ private:
    glm::vec3         mEndPoint;
 
    glm::vec3         mPosition;
-   Q::quat           mRotation;
+   glm ::quat        mRotation;
    float             mScalingFactor;
 
    glm::vec3         mColor;

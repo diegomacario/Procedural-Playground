@@ -2,9 +2,8 @@
 #define CAMERA3_H
 
 #include <glm/glm.hpp>
+#include <glm/gtc/quaternion.hpp>
 #include <glm/gtc/matrix_transform.hpp>
-
-#include "quat.h"
 
 class Camera3
 {
@@ -13,7 +12,7 @@ public:
    Camera3(float            distanceBetweenPlayerAndCamera,
            float            cameraPitch,
            const glm::vec3& playerPosition,
-           const Q::quat&   playerOrientation,
+           const glm::quat& playerOrientation,
            const glm::vec3& offsetFromPlayerPositionToCameraTarget,
            float            distanceBetweenPlayerAndCameraLowerLimit,
            float            distanceBetweenPlayerAndCameraUpperLimit,
@@ -33,7 +32,7 @@ public:
    Camera3& operator=(Camera3&& rhs) noexcept;
 
    glm::vec3 getPosition();
-   Q::quat   getOrientation();
+   glm::quat getOrientation();
    float     getPitch();
 
    glm::mat4 getViewMatrix();
@@ -43,7 +42,7 @@ public:
    void      reposition(float            distanceBetweenPlayerAndCamera,
                         float            cameraPitch,
                         const glm::vec3& playerPosition,
-                        const Q::quat&   playerOrientation,
+                        const glm::quat& playerOrientation,
                         const glm::vec3& offsetFromPlayerPositionToCameraTarget,
                         float            distanceBetweenPlayerAndCameraLowerLimit,
                         float            distanceBetweenPlayerAndCameraUpperLimit,
@@ -60,7 +59,7 @@ public:
 
    void      processMouseMovement(float xOffset, float yOffset);
    void      processScrollWheelMovement(float yOffset);
-   void      processPlayerMovement(const glm::vec3& playerPosition, const Q::quat& playerOrientation);
+   void      processPlayerMovement(const glm::vec3& playerPosition, const glm::quat& playerOrientation);
 
 private:
 
@@ -71,11 +70,11 @@ private:
    void      updatePerspectiveProjectionViewMatrix();
 
    glm::vec3 mCameraPosition;
-   Q::quat   mCameraOrientationWRTPlayer;
-   Q::quat   mCameraGlobalOrientation;
+   glm::quat mCameraOrientationWRTPlayer;
+   glm::quat mCameraGlobalOrientation;
 
    glm::vec3 mPlayerPosition;
-   Q::quat   mPlayerOrientation;
+   glm::quat mPlayerOrientation;
    glm::vec3 mOffsetFromPlayerPositionToCameraTarget;
 
    float     mDistanceBetweenPlayerAndCamera;
