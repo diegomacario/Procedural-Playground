@@ -33,12 +33,9 @@
     <ClInclude Include="..\inc\AnimatedCharacter.h" />
     <ClInclude Include="..\inc\AnimatedMesh.h" />
     <ClInclude Include="..\inc\Camera3.h" />
-    <ClInclude Include="..\inc\Clip.h" />
     <ClInclude Include="..\inc\finite_state_machine.h" />
-    <ClInclude Include="..\inc\Frame.h" />
     <ClInclude Include="..\inc\game.h" />
     <ClInclude Include="..\inc\GLTFLoader.h" />
-    <ClInclude Include="..\inc\Interpolation.h" />
     <ClInclude Include="..\inc\Line.h" />
     <ClInclude Include="..\inc\PlayState.h" />
     <ClInclude Include="..\inc\Pose.h" />
@@ -52,10 +49,7 @@
     <ClInclude Include="..\inc\state.h" />
     <ClInclude Include="..\inc\texture.h" />
     <ClInclude Include="..\inc\texture_loader.h" />
-    <ClInclude Include="..\inc\Track.h" />
-    <ClInclude Include="..\inc\TrackVisualizer.h" />
     <ClInclude Include="..\inc\Transform.h" />
-    <ClInclude Include="..\inc\TransformTrack.h" />
     <ClInclude Include="..\inc\VerletSystem.h" />
     <ClInclude Include="..\inc\window.h" />
   </ItemGroup>
@@ -73,7 +67,6 @@
     <ClCompile Include="..\src\AnimatedCharacter.cpp" />
     <ClCompile Include="..\src\AnimatedMesh.cpp" />
     <ClCompile Include="..\src\Camera3.cpp" />
-    <ClCompile Include="..\src\Clip.cpp" />
     <ClCompile Include="..\src\finite_state_machine.cpp" />
     <ClCompile Include="..\src\game.cpp" />
     <ClCompile Include="..\src\GLTFLoader.cpp" />
@@ -89,10 +82,7 @@
     <ClCompile Include="..\src\SkeletonViewer.cpp" />
     <ClCompile Include="..\src\texture.cpp" />
     <ClCompile Include="..\src\texture_loader.cpp" />
-    <ClCompile Include="..\src\Track.cpp" />
-    <ClCompile Include="..\src\TrackVisualizer.cpp" />
     <ClCompile Include="..\src\Transform.cpp" />
-    <ClCompile Include="..\src\TransformTrack.cpp" />
     <ClCompile Include="..\src\VerletSystem.cpp" />
     <ClCompile Include="..\src\window.cpp" />
   </ItemGroup>

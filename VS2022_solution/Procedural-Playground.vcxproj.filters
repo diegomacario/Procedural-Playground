@@ -31,16 +31,7 @@
     <ClCompile Include="..\src\Transform.cpp">
       <Filter>Procedural-Playground\Source Files\Math</Filter>
     </ClCompile>
-    <ClCompile Include="..\src\Track.cpp">
-      <Filter>Procedural-Playground\Source Files\Animation</Filter>
-    </ClCompile>
-    <ClCompile Include="..\src\TransformTrack.cpp">
-      <Filter>Procedural-Playground\Source Files\Animation</Filter>
-    </ClCompile>
     <ClCompile Include="..\src\Pose.cpp">
-      <Filter>Procedural-Playground\Source Files\Animation</Filter>
-    </ClCompile>
-    <ClCompile Include="..\src\Clip.cpp">
       <Filter>Procedural-Playground\Source Files\Animation</Filter>
     </ClCompile>
     <ClCompile Include="..\src\Skeleton.cpp">
@@ -94,9 +85,6 @@
     <ClCompile Include="..\dependencies\stb_image\stb_image\stb_image.cpp">
       <Filter>stb_image\Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="..\src\TrackVisualizer.cpp">
-      <Filter>Procedural-Playground\Source Files\Animation</Filter>
-    </ClCompile>
     <ClCompile Include="..\src\AnimatedCharacter.cpp">
       <Filter>Procedural-Playground\Source Files\Base</Filter>
     </ClCompile>
@@ -141,22 +129,7 @@
     <ClInclude Include="..\inc\Transform.h">
       <Filter>Procedural-Playground\Header Files\Math</Filter>
     </ClInclude>
-    <ClInclude Include="..\inc\Frame.h">
-      <Filter>Procedural-Playground\Header Files\Animation</Filter>
-    </ClInclude>
-    <ClInclude Include="..\inc\Interpolation.h">
-      <Filter>Procedural-Playground\Header Files\Animation</Filter>
-    </ClInclude>
-    <ClInclude Include="..\inc\Track.h">
-      <Filter>Procedural-Playground\Header Files\Animation</Filter>
-    </ClInclude>
-    <ClInclude Include="..\inc\TransformTrack.h">
-      <Filter>Procedural-Playground\Header Files\Animation</Filter>
-    </ClInclude>
     <ClInclude Include="..\inc\Pose.h">
-      <Filter>Procedural-Playground\Header Files\Animation</Filter>
-    </ClInclude>
-    <ClInclude Include="..\inc\Clip.h">
       <Filter>Procedural-Playground\Header Files\Animation</Filter>
     </ClInclude>
     <ClInclude Include="..\inc\Skeleton.h">
@@ -212,9 +185,6 @@
     </ClInclude>
     <ClInclude Include="..\dependencies\stb_image\stb_image\stb_image.h">
       <Filter>stb_image\Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="..\inc\TrackVisualizer.h">
-      <Filter>Procedural-Playground\Header Files\Animation</Filter>
     </ClInclude>
     <ClInclude Include="..\inc\AnimatedCharacter.h">
       <Filter>Procedural-Playground\Header Files\Base</Filter>
