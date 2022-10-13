@@ -1,4 +1,5 @@
 #include <glm/ext/scalar_constants.hpp>
+#include <glm/gtc/quaternion.hpp>
 
 #include "resource_manager.h"
 #include "shader_loader.h"
@@ -132,55 +133,57 @@ void AnimatedCharacter::initialize(const std::shared_ptr<Shader>& staticMeshWith
 
    // Set up bind poses for each bone
    found = mBaseSkeleton.GetJointIndex("DEF-head", jointIndex);
-   if (found) { display_body.head.Bind(mBaseSkeleton.GetBindPose().GetGlobalTransform(jointIndex), jointIndex); }
+   if (found) { display_body1.head.Bind(mBaseSkeleton.GetBindPose().GetGlobalTransform(jointIndex), jointIndex); }
    else { std::cout << "Couldn't find joint: " << "DEF-head" << '\n'; }
 
    found = mBaseSkeleton.GetJointIndex("DEF-chest", jointIndex);
-   if (found) { display_body.chest.Bind(mBaseSkeleton.GetBindPose().GetGlobalTransform(jointIndex), jointIndex); }
+   if (found) { display_body1.chest.Bind(mBaseSkeleton.GetBindPose().GetGlobalTransform(jointIndex), jointIndex); }
    else { std::cout << "Couldn't find joint: " << "DEF-chest" << '\n'; }
 
    found = mBaseSkeleton.GetJointIndex("DEF-belly", jointIndex);
-   if (found) { display_body.belly.Bind(mBaseSkeleton.GetBindPose().GetGlobalTransform(jointIndex), jointIndex); }
+   if (found) { display_body1.belly.Bind(mBaseSkeleton.GetBindPose().GetGlobalTransform(jointIndex), jointIndex); }
    else { std::cout << "Couldn't find joint: " << "DEF-belly" << '\n'; }
 
    found = mBaseSkeleton.GetJointIndex("DEF-pelvis", jointIndex);
-   if (found) { display_body.pelvis.Bind(mBaseSkeleton.GetBindPose().GetGlobalTransform(jointIndex), jointIndex); }
+   if (found) { display_body1.pelvis.Bind(mBaseSkeleton.GetBindPose().GetGlobalTransform(jointIndex), jointIndex); }
    else { std::cout << "Couldn't find joint: " << "DEF-pelvis" << '\n'; }
 
    found = mBaseSkeleton.GetJointIndex("DEF-upper_arm_L", jointIndex);
-   if (found) { display_body.arm_top_l.Bind(mBaseSkeleton.GetBindPose().GetGlobalTransform(jointIndex), jointIndex); }
+   if (found) { display_body1.arm_top_l.Bind(mBaseSkeleton.GetBindPose().GetGlobalTransform(jointIndex), jointIndex); }
    else { std::cout << "Couldn't find joint: " << "DEF-upper_arm_L" << '\n'; }
 
    found = mBaseSkeleton.GetJointIndex("DEF-forearm_L", jointIndex);
-   if (found) { display_body.arm_bottom_l.Bind(mBaseSkeleton.GetBindPose().GetGlobalTransform(jointIndex), jointIndex); }
+   if (found) { display_body1.arm_bottom_l.Bind(mBaseSkeleton.GetBindPose().GetGlobalTransform(jointIndex), jointIndex); }
    else { std::cout << "Couldn't find joint: " << "DEF-forearm_L" << '\n'; }
 
    found = mBaseSkeleton.GetJointIndex("DEF-upper_arm_R", jointIndex);
-   if (found) { display_body.arm_top_r.Bind(mBaseSkeleton.GetBindPose().GetGlobalTransform(jointIndex), jointIndex); }
+   if (found) { display_body1.arm_top_r.Bind(mBaseSkeleton.GetBindPose().GetGlobalTransform(jointIndex), jointIndex); }
    else { std::cout << "Couldn't find joint: " << "DEF-upper_arm_R" << '\n'; }
 
    found = mBaseSkeleton.GetJointIndex("DEF-forearm_R", jointIndex);
-   if (found) { display_body.arm_bottom_r.Bind(mBaseSkeleton.GetBindPose().GetGlobalTransform(jointIndex), jointIndex); }
+   if (found) { display_body1.arm_bottom_r.Bind(mBaseSkeleton.GetBindPose().GetGlobalTransform(jointIndex), jointIndex); }
    else { std::cout << "Couldn't find joint: " << "DEF-forearm_R" << '\n'; }
 
    found = mBaseSkeleton.GetJointIndex("DEF-thigh_L", jointIndex);
-   if (found) { display_body.leg_top_l.Bind(mBaseSkeleton.GetBindPose().GetGlobalTransform(jointIndex), jointIndex); }
+   if (found) { display_body1.leg_top_l.Bind(mBaseSkeleton.GetBindPose().GetGlobalTransform(jointIndex), jointIndex); }
    else { std::cout << "Couldn't find joint: " << "DEF-thigh_L" << '\n'; }
 
    found = mBaseSkeleton.GetJointIndex("DEF-shin_L", jointIndex);
-   if (found) { display_body.leg_bottom_l.Bind(mBaseSkeleton.GetBindPose().GetGlobalTransform(jointIndex), jointIndex); }
+   if (found) { display_body1.leg_bottom_l.Bind(mBaseSkeleton.GetBindPose().GetGlobalTransform(jointIndex), jointIndex); }
    else { std::cout << "Couldn't find joint: " << "DEF-shin_L" << '\n'; }
 
    found = mBaseSkeleton.GetJointIndex("DEF-thigh_R", jointIndex);
-   if (found) { display_body.leg_top_r.Bind(mBaseSkeleton.GetBindPose().GetGlobalTransform(jointIndex), jointIndex); }
+   if (found) { display_body1.leg_top_r.Bind(mBaseSkeleton.GetBindPose().GetGlobalTransform(jointIndex), jointIndex); }
    else { std::cout << "Couldn't find joint: " << "DEF-thigh_R" << '\n'; }
 
    found = mBaseSkeleton.GetJointIndex("DEF-shin_R", jointIndex);
-   if (found) { display_body.leg_bottom_r.Bind(mBaseSkeleton.GetBindPose().GetGlobalTransform(jointIndex), jointIndex); }
+   if (found) { display_body1.leg_bottom_r.Bind(mBaseSkeleton.GetBindPose().GetGlobalTransform(jointIndex), jointIndex); }
    else { std::cout << "Couldn't find joint: " << "DEF-shin_R" << '\n'; }
 
+   display_body2 = display_body1;
+
    // Adjust elbow to match arm transform
-   elbow.position = display_body.arm_bottom_r.transform.position;
+   elbow.position = display_body1.arm_bottom_r.transform.position;
 
    // Set up initial IK poses (just used to get bone lengths later)
    arm_ik[0] = shoulder.position;
@@ -188,7 +191,7 @@ void AnimatedCharacter::initialize(const std::shared_ptr<Shader>& staticMeshWith
    arm_ik[2] = grip.position;
 
    leg_ik[0] = hip.position;
-   leg_ik[1] = display_body.leg_bottom_r.transform.position;
+   leg_ik[1] = display_body1.leg_bottom_r.transform.position;
    leg_ik[2] = foot.position;
 
    float measured_arm_length = glm::distance(shoulder.position, elbow.position) + glm::distance(elbow.position, grip.position);
@@ -270,7 +273,8 @@ void AnimatedCharacter::initialize(const std::shared_ptr<Shader>& staticMeshWith
    }
 
    // Set the initial pose
-   mCurrentPose = mBaseSkeleton.GetBindPose();
+   mCurrentPose1 = mBaseSkeleton.GetBindPose();
+   mCurrentPose2 = mBaseSkeleton.GetBindPose();
 }
 
 void AnimatedCharacter::load(const std::shared_ptr<Shader>& staticMeshWithoutUVsShader)
@@ -335,16 +339,30 @@ void AnimatedCharacter::render(const std::shared_ptr<Shader>& staticMeshWithoutU
    // Loop over the character meshes and render each one
    //glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
    for (unsigned int i = 0,
-      size = static_cast<unsigned int>(mMeshes.size());
-      i < size;
-      ++i)
+        size = static_cast<unsigned int>(mMeshes.size());
+        i < size;
+        ++i)
    {
       unsigned int nodeIndex = mMeshes[i].GetNodeIndex();
-      Transform globalTransform = mCurrentPose.GetGlobalTransform(nodeIndex);
+      Transform globalTransform = mCurrentPose1.GetGlobalTransform(nodeIndex);
       staticMeshWithoutUVsShader->setUniformMat4("model", transformToMat4(globalTransform));
       staticMeshWithoutUVsShader->setUniformVec3("baseColor", mBaseColors[i]);
 
       mMeshes[i].Render();
+   }
+
+   for (unsigned int i = 0,
+        size = static_cast<unsigned int>(mMeshes.size());
+        i < size;
+        ++i)
+   {
+      unsigned int nodeIndex = mMeshes[i].GetNodeIndex();
+      Transform globalTransform = mCurrentPose2.GetGlobalTransform(nodeIndex);
+      globalTransform.position += glm::vec3(0.0f, 0.0f, 1.0f);
+      staticMeshWithoutUVsShader->setUniformMat4("model", transformToMat4(globalTransform));
+      staticMeshWithoutUVsShader->setUniformVec3("baseColor", mBaseColors[i]);
+
+      //mMeshes[i].Render();
    }
    //glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
 
@@ -456,15 +474,15 @@ float AnimatedCharacter::GetAngleGivenSides(float a, float b, float c)
 //    bottom   = visual forearm
 //    old_axis = elbow's bind space axis of rotation
 //    axis     = elbow's world space axis of rotation
-void AnimatedCharacter::ApplyTwoBoneIK(int start_id,
-                                       int end_id,
-                                       const glm::vec3& forward,
-                                       const std::array<glm::vec3, 3>& ik,
-                                       DisplayBone& top,
-                                       DisplayBone& bottom,
-                                       const std::vector<VerletSystem::Point>& points,
-                                       const glm::vec3& old_axis,
-                                       const glm::vec3& axis)
+void AnimatedCharacter::ApplyTwoBoneIK1(int start_id,
+                                        int end_id,
+                                        const glm::vec3& forward,
+                                        const std::array<glm::vec3, 3>& ik,
+                                        DisplayBone& top,
+                                        DisplayBone& bottom,
+                                        const std::vector<VerletSystem::Point>& points,
+                                        const glm::vec3& old_axis,
+                                        const glm::vec3& axis)
 {
    const VerletSystem::Point& start = points[start_id]; // shoulder
    const VerletSystem::Point& end   = points[end_id];   // hand
@@ -503,19 +521,81 @@ void AnimatedCharacter::ApplyTwoBoneIK(int start_id,
    // With only this rotation the arms are stiff (i.e. they rotate around the shoulder, but they don't bend at the elbows)
    // (end.pos - start.pos) = (hand - shoulder) = points downwards
    // forward points backwards
-   Q::quat base_rotation = Q::inverse(Q::lookRotation(end.bindPos - start.bindPos, glm::vec3(0.0f, 0.0f, 1.0f))) * Q::lookRotation(end.currPos - start.currPos, forward);
+   Q::quat base_rotation1 = Q::inverse(Q::lookRotation(end.bindPos - start.bindPos, glm::vec3(0.0f, 0.0f, 1.0f))) * Q::lookRotation(end.currPos - start.currPos, forward);
    // Apply additional rotation from IK
-   base_rotation = Q::inverse(Q::angleAxis(old_base_angle, old_axis)) * base_rotation * Q::angleAxis(base_angle, axis);
+   base_rotation1 = Q::inverse(Q::angleAxis(old_base_angle, old_axis)) * base_rotation1 * Q::angleAxis(base_angle, axis);
 
    // Apply base and hinge rotations to actual display bones
    // bind_bicep + (shoulder - bind_shoulder) = move bicep into position below the shoulder
    top.transform.position = top.bind_pos + (start.currPos - start.bindPos);
    // orient the bicep
-   top.transform.rotation = top.bind_rot * base_rotation;
+   top.transform.rotation = top.bind_rot * base_rotation1;
 
    // Move forearm into position below the arm
    bottom.transform.position = top.transform.position + Q::inverse(top.bind_rot) * top.transform.rotation * (bottom.bind_pos - top.bind_pos);
-   bottom.transform.rotation = bottom.bind_rot * Q::inverse(Q::angleAxis(old_hinge_angle, old_axis)) * base_rotation * Q::angleAxis(hinge_angle, axis);
+   bottom.transform.rotation = bottom.bind_rot * Q::inverse(Q::angleAxis(old_hinge_angle, old_axis)) * base_rotation1 * Q::angleAxis(hinge_angle, axis);
+}
+
+void AnimatedCharacter::ApplyTwoBoneIK2(int start_id,
+                                        int end_id,
+                                        const glm::vec3& forward,
+                                        const std::array<glm::vec3, 3>& ik,
+                                        DisplayBone& top,
+                                        DisplayBone& bottom,
+                                        const std::vector<VerletSystem::Point>& points,
+                                        const glm::vec3& old_axis,
+                                        const glm::vec3& axis)
+{
+   const VerletSystem::Point& start = points[start_id]; // shoulder
+   const VerletSystem::Point& end   = points[end_id];   // hand
+
+   // Get sides of triangle formed by upper and lower limb
+   float dist_a     = glm::distance(ik[0], ik[1]);               // Distance from bind shoulder to bind elbow
+   float dist_b     = glm::distance(ik[1], ik[2]);               // Distance from bind elbow to bind grip
+   float dist_c     = glm::distance(start.currPos, end.currPos); // Distance from complete.shoulder to complete.hand
+   float old_dist_c = glm::distance(ik[0], ik[2]);               // Distance from bind shoulder to bind hand
+
+   // Note that dist_a and dist_b are always the same because of the length constraint between shoulder-elbow and elbow-hand
+   // The only distance that can change is the shoulder-hand distance
+   // That's why the computations below work
+
+   // Get angles of triangle
+   /*
+                    /* <- shoulder
+                   /Y|
+      dist_a ->   /  |
+                 /   |
+      elbow  -> *X   | <- dist_c
+                 \   |
+      dist_b ->   \  |
+                   \ |
+                    \* <- hand
+
+      X = hinge angle
+      Y = base angle
+   */
+   float old_hinge_angle = GetAngleGivenSides(dist_a, dist_b, old_dist_c); // Bind angle between bicep and forearm
+   float hinge_angle     = GetAngleGivenSides(dist_a, dist_b, dist_c);     // Angle between bicep and forearm
+   float old_base_angle  = GetAngleGivenSides(old_dist_c, dist_a, dist_b); // Bind angle between bicep and shoulder-hand line
+   float base_angle      = GetAngleGivenSides(dist_c, dist_a, dist_b);     // Angle between bicep and shoulder-hand line
+
+   // Apply rotation of entire arm (shoulder->hand)
+   // With only this rotation the arms are stiff (i.e. they rotate around the shoulder, but they don't bend at the elbows)
+   // (end.pos - start.pos) = (hand - shoulder) = points downwards
+   // forward points backwards
+   glm::quat base_rotation2 = glm::quatLookAt(glm::normalize(end.currPos - start.currPos), forward) * glm::inverse(glm::quatLookAt(glm::normalize(end.bindPos - start.bindPos), glm::vec3(0.0f, 0.0f, 1.0f)));
+   // Apply additional rotation from IK
+   base_rotation2 = glm::angleAxis(base_angle, axis) * base_rotation2 * glm::inverse(glm::angleAxis(old_base_angle, old_axis));
+
+   // Apply base and hinge rotations to actual display bones
+   // bind_bicep + (shoulder - bind_shoulder) = move bicep into position below the shoulder
+   top.transform.position = top.bind_pos + (start.currPos - start.bindPos);
+   // orient the bicep
+   top.transform.rotation = glmQuatToQuat(base_rotation2 * quatToGLMQuat(top.bind_rot));
+
+   // Move forearm into position below the arm
+   bottom.transform.position = top.transform.position + quatToGLMQuat(top.transform.rotation) * glm::inverse(quatToGLMQuat(top.bind_rot)) * (bottom.bind_pos - top.bind_pos);
+   bottom.transform.rotation = glmQuatToQuat(glm::angleAxis(hinge_angle, axis) * base_rotation2 * glm::inverse(glm::angleAxis(old_hinge_angle, old_axis)) * quatToGLMQuat(bottom.bind_rot));
 }
 
 // Calculate bone transform that matches orientation of top and bottom points, and looks in the character "forward" direction
@@ -685,22 +765,33 @@ void AnimatedCharacter::Update()
       // Apply core bones
       // 5 = head
       // 6 = neck
-      ApplyBound(display_body.head, forward, bind_forward, 5, 6);
+      ApplyBound(display_body1.head, forward, bind_forward, 5, 6);
       // 6 = neck
       // 7 = stomach
-      ApplyBound(display_body.chest, forward, bind_forward, 6, 7);
+      ApplyBound(display_body1.chest, forward, bind_forward, 6, 7);
       // 7 = stomach
       // 8 = pelvis (hip)
-      ApplyBound(display_body.belly, forward, bind_forward, 7, 8);
+      ApplyBound(display_body1.belly, forward, bind_forward, 7, 8);
       // 8 = pelvis (hip)
       // 9 = groin
-      ApplyBound(display_body.pelvis, forward, bind_forward, 8, 9);
+      ApplyBound(display_body1.pelvis, forward, bind_forward, 8, 9);
+
+      ApplyBound(display_body2.head, forward, bind_forward, 5, 6);
+      // 6 = neck
+      // 7 = stomach
+      ApplyBound(display_body2.chest, forward, bind_forward, 6, 7);
+      // 7 = stomach
+      // 8 = pelvis (hip)
+      ApplyBound(display_body2.belly, forward, bind_forward, 7, 8);
+      // 8 = pelvis (hip)
+      // 9 = groin
+      ApplyBound(display_body2.pelvis, forward, bind_forward, 8, 9);
 
       // Arm IK
       for (int i = 0; i < 2; ++i)
       {
-         DisplayBone& top    = (i == 0) ? display_body.arm_top_r : display_body.arm_top_l;       // Bicep
-         DisplayBone& bottom = (i == 0) ? display_body.arm_bottom_r : display_body.arm_bottom_l; // Forearm
+         DisplayBone& top    = (i == 0) ? display_body1.arm_top_r : display_body1.arm_top_l;       // Bicep
+         DisplayBone& bottom = (i == 0) ? display_body1.arm_bottom_r : display_body1.arm_bottom_l; // Forearm
 
          // 0 = right shoulder
          // 1 = right hand
@@ -735,7 +826,51 @@ void AnimatedCharacter::Update()
          // bottom   = visual forearm
          // old_axis = elbow's bind space axis of rotation
          // axis     = elbow's world space axis of rotation
-         ApplyTwoBoneIK(start_id, end_id, forward, arm_ik, top, bottom, complete.mPoints, old_axis, axis);
+         ApplyTwoBoneIK1(start_id, end_id, forward, arm_ik, top, bottom, complete.mPoints, old_axis, axis);
+
+         mSkeletonLines.emplace_back(points[start_id].currPos, bottom.transform.position, glm::vec3(1.0f, 0.0f, 0.0f));
+         mSkeletonLines.emplace_back(points[end_id].currPos, bottom.transform.position, glm::vec3(1.0f, 0.0f, 0.0f));
+      }
+
+      for (int i = 0; i < 2; ++i)
+      {
+         DisplayBone& top = (i == 0) ? display_body2.arm_top_r : display_body2.arm_top_l;       // Bicep
+         DisplayBone& bottom = (i == 0) ? display_body2.arm_bottom_r : display_body2.arm_bottom_l; // Forearm
+
+         // 0 = right shoulder
+         // 1 = right hand
+         // 2 = left shoulder
+         // 3 = left hand
+         int start_id = i * 2;     // Shoulder
+         int end_id = i * 2 + 1; // Hand
+         const VerletSystem::Point& start = points[start_id]; // Shoulder point
+         const VerletSystem::Point& end = points[end_id];   // Hand point
+
+         // Adjust elbow target position
+         float ik_driver = 1.0f;
+         float ik_forward_amount = -ik_driver * 0.8f;
+         float ik_up_amount = 0.1f + ik_driver * 0.5f;
+         // Start at mid point between the shoulders, move up by ik_up_amount and move forward by ik_forward_amount
+         glm::vec3 elbow_point = ((points[2].currPos + points[0].currPos) * 0.5f + up * ik_up_amount + forward * ik_forward_amount);
+         glm::vec3 bind_elbow_point = ((points[2].bindPos + points[0].bindPos) * 0.5f + bind_up * ik_up_amount + bind_forward * ik_forward_amount);
+
+         // ((mid point between hand and shoulder) - elbow IK target) cross (shoulder - hand)
+         // This looks to me like the axis of rotation of the elbow
+         // It points outwards from the body (remember to use your left hand when computing cross products in a left-handed coordinate system like Unity's)
+         // old_axis is bind space
+         // axis is world space
+         glm::vec3 old_axis = glm::normalize(glm::cross((end.bindPos + start.bindPos) * 0.5f - bind_elbow_point, start.bindPos - end.bindPos));
+         glm::vec3 axis = glm::normalize(glm::cross((end.currPos + start.currPos) * 0.5f - elbow_point, start.currPos - end.currPos));
+
+         // start_id = shoulder
+         // end_id   = hand
+         // forward actually points backwards
+         // arm_ik   = original shoulder, elbow and grip positions
+         // top      = visual bicep
+         // bottom   = visual forearm
+         // old_axis = elbow's bind space axis of rotation
+         // axis     = elbow's world space axis of rotation
+         ApplyTwoBoneIK2(start_id, end_id, forward, arm_ik, top, bottom, complete.mPoints, old_axis, axis);
 
          mSkeletonLines.emplace_back(points[start_id].currPos, bottom.transform.position, glm::vec3(1.0f, 0.0f, 0.0f));
          mSkeletonLines.emplace_back(points[end_id].currPos, bottom.transform.position, glm::vec3(1.0f, 0.0f, 0.0f));
@@ -744,8 +879,8 @@ void AnimatedCharacter::Update()
       // Leg IK
       for (int i = 0; i < 2; ++i)
       {
-         DisplayBone& top    = (i == 0) ? display_body.leg_top_r : display_body.leg_top_l;       // Thigh
-         DisplayBone& bottom = (i == 0) ? display_body.leg_bottom_r : display_body.leg_bottom_l; // Calf
+         DisplayBone& top    = (i == 0) ? display_body1.leg_top_r : display_body1.leg_top_l;       // Thigh
+         DisplayBone& bottom = (i == 0) ? display_body1.leg_bottom_r : display_body1.leg_bottom_l; // Calf
 
          // 10 = right hip
          // 11 = right foot
@@ -769,7 +904,40 @@ void AnimatedCharacter::Update()
          glm::vec3 old_axis = bind_rotation * glm::vec3(1.0f, 0.0f, 0.0f);
          glm::vec3 axis     = rotation * glm::vec3(1.0f, 0.0f, 0.0f);
 
-         ApplyTwoBoneIK(start, end, leg_forward, leg_ik, top, bottom, complete.mPoints, old_axis, axis);
+         ApplyTwoBoneIK1(start, end, leg_forward, leg_ik, top, bottom, complete.mPoints, old_axis, axis);
+
+         mSkeletonLines.emplace_back(points[start].currPos, bottom.transform.position, glm::vec3(1.0f, 0.0f, 0.0f));
+         mSkeletonLines.emplace_back(points[end].currPos, bottom.transform.position, glm::vec3(1.0f, 0.0f, 0.0f));
+      }
+
+      for (int i = 0; i < 2; ++i)
+      {
+         DisplayBone& top = (i == 0) ? display_body2.leg_top_r : display_body2.leg_top_l;       // Thigh
+         DisplayBone& bottom = (i == 0) ? display_body2.leg_bottom_r : display_body2.leg_bottom_l; // Calf
+
+         // 10 = right hip
+         // 11 = right foot
+         // 12 = left hip
+         // 13 = left foot
+         int start = i * 2 + 10; // Hip
+         int end = i * 2 + 1 + 10; // Foot
+
+         // Points downwards from hip to foot
+         glm::vec3 leg_dir = points[end].currPos - points[start].currPos;
+
+         // Get knee direction
+         glm::vec2 leg_dir_flat = glm::normalize(glm::vec2(glm::dot(leg_dir, forward), glm::dot(leg_dir, up)));
+         glm::vec3 leg_forward = leg_dir_flat[0] * up + leg_dir_flat[1] * -forward;
+
+         // Get base whole-leg rotation
+         Q::quat bind_rotation = Q::lookRotation(points[end].bindPos - points[start].bindPos, glm::vec3(0.0f, 0.0f, 1.0f));
+         Q::quat rotation = bind_rotation * Q::lookRotation(leg_dir, leg_forward);
+
+         // Get knee bend axis
+         glm::vec3 old_axis = bind_rotation * glm::vec3(1.0f, 0.0f, 0.0f);
+         glm::vec3 axis = rotation * glm::vec3(1.0f, 0.0f, 0.0f);
+
+         ApplyTwoBoneIK2(start, end, leg_forward, leg_ik, top, bottom, complete.mPoints, old_axis, axis);
 
          mSkeletonLines.emplace_back(points[start].currPos, bottom.transform.position, glm::vec3(1.0f, 0.0f, 0.0f));
          mSkeletonLines.emplace_back(points[end].currPos, bottom.transform.position, glm::vec3(1.0f, 0.0f, 0.0f));
@@ -780,7 +948,7 @@ void AnimatedCharacter::Update()
       // head_look_x: -90 to 90
 
       // Get head target in head transform space
-      glm::vec3 target = glm::normalize(inverseTransformPoint(display_body.head.transform, look_target));
+      glm::vec3 target = glm::normalize(inverseTransformPoint(display_body1.head.transform, look_target));
       // Using sin here is not correct (should be asin or something), but looks ok so keeping it for now
       float head_look_y = glm::sin(target.x);
       // Flatten look direction to solve other rotation axis
@@ -790,11 +958,29 @@ void AnimatedCharacter::Update()
       float head_look_x = -glm::sin(temp.y);
 
       // Apply head transform
-      display_body.head.transform.rotation = Q::angleAxis(head_look_y, glm::vec3(0.0f, 1.0f, 0.0f)) * Q::angleAxis(head_look_x, glm::vec3(1.0f, 0.0f, 0.0f)) * display_body.head.transform.rotation;
+      display_body1.head.transform.rotation = Q::angleAxis(head_look_y, glm::vec3(0.0f, 1.0f, 0.0f)) * Q::angleAxis(head_look_x, glm::vec3(1.0f, 0.0f, 0.0f)) * display_body1.head.transform.rotation;
       if (glm::degrees(head_look_y) > 0.0f)
       {
          // It's important not to take the scale into account here, which is why we use TransformDirection instead of TransformVector
-         display_body.head.transform.position = display_body.head.transform.position + ((transformDirection(display_body.head.transform, glm::vec3(1.0f, 0.0f, 0.0f))) * glm::degrees(head_look_y) * -0.001f);
+         display_body1.head.transform.position = display_body1.head.transform.position + ((transformDirection(display_body1.head.transform, glm::vec3(1.0f, 0.0f, 0.0f))) * glm::degrees(head_look_y) * -0.001f);
+      }
+
+      // Get head target in head transform space
+      target = glm::normalize(inverseTransformPoint(display_body2.head.transform, look_target));
+      // Using sin here is not correct (should be asin or something), but looks ok so keeping it for now
+      head_look_y = glm::sin(target.x);
+      // Flatten look direction to solve other rotation axis
+      temp = target;
+      temp.x = 0.0f;
+      temp = glm::normalize(temp);
+      head_look_x = -glm::sin(temp.y);
+
+      // Apply head transform
+      display_body2.head.transform.rotation = Q::angleAxis(head_look_y, glm::vec3(0.0f, 1.0f, 0.0f)) * Q::angleAxis(head_look_x, glm::vec3(1.0f, 0.0f, 0.0f)) * display_body2.head.transform.rotation;
+      if (glm::degrees(head_look_y) > 0.0f)
+      {
+         // It's important not to take the scale into account here, which is why we use TransformDirection instead of TransformVector
+         display_body2.head.transform.position = display_body2.head.transform.position + ((transformDirection(display_body2.head.transform, glm::vec3(1.0f, 0.0f, 0.0f))) * glm::degrees(head_look_y) * -0.001f);
       }
    }
 
@@ -812,18 +998,31 @@ void AnimatedCharacter::Update()
    Transform inverseBaseTransform;
    if (found) { inverseBaseTransform = inverse(mBaseSkeleton.GetBindPose().GetGlobalTransform(jointIndex)); }
    else { std::cout << "Couldn't find joint: " << "display_gibbon" << '\n'; }
-   mCurrentPose.SetLocalTransform(display_body.chest.joint_index,        combine(inverseBaseTransform, display_body.chest.transform));
-   mCurrentPose.SetLocalTransform(display_body.arm_top_l.joint_index,    combine(inverseBaseTransform, display_body.arm_top_l.transform));
-   mCurrentPose.SetLocalTransform(display_body.arm_bottom_l.joint_index, combine(inverseBaseTransform, display_body.arm_bottom_l.transform));
-   mCurrentPose.SetLocalTransform(display_body.arm_top_r.joint_index,    combine(inverseBaseTransform, display_body.arm_top_r.transform));
-   mCurrentPose.SetLocalTransform(display_body.arm_bottom_r.joint_index, combine(inverseBaseTransform, display_body.arm_bottom_r.transform));
-   mCurrentPose.SetLocalTransform(display_body.head.joint_index,         combine(inverseBaseTransform, display_body.head.transform));
-   mCurrentPose.SetLocalTransform(display_body.belly.joint_index,        combine(inverseBaseTransform, display_body.belly.transform));
-   mCurrentPose.SetLocalTransform(display_body.pelvis.joint_index,       combine(inverseBaseTransform, display_body.pelvis.transform));
-   mCurrentPose.SetLocalTransform(display_body.leg_top_l.joint_index,    combine(inverseBaseTransform, display_body.leg_top_l.transform));
-   mCurrentPose.SetLocalTransform(display_body.leg_bottom_l.joint_index, combine(inverseBaseTransform, display_body.leg_bottom_l.transform));
-   mCurrentPose.SetLocalTransform(display_body.leg_top_r.joint_index,    combine(inverseBaseTransform, display_body.leg_top_r.transform));
-   mCurrentPose.SetLocalTransform(display_body.leg_bottom_r.joint_index, combine(inverseBaseTransform, display_body.leg_bottom_r.transform));
+   mCurrentPose1.SetLocalTransform(display_body1.chest.joint_index,        combine(inverseBaseTransform, display_body1.chest.transform));
+   mCurrentPose1.SetLocalTransform(display_body1.arm_top_l.joint_index,    combine(inverseBaseTransform, display_body1.arm_top_l.transform));
+   mCurrentPose1.SetLocalTransform(display_body1.arm_bottom_l.joint_index, combine(inverseBaseTransform, display_body1.arm_bottom_l.transform));
+   mCurrentPose1.SetLocalTransform(display_body1.arm_top_r.joint_index,    combine(inverseBaseTransform, display_body1.arm_top_r.transform));
+   mCurrentPose1.SetLocalTransform(display_body1.arm_bottom_r.joint_index, combine(inverseBaseTransform, display_body1.arm_bottom_r.transform));
+   mCurrentPose1.SetLocalTransform(display_body1.head.joint_index,         combine(inverseBaseTransform, display_body1.head.transform));
+   mCurrentPose1.SetLocalTransform(display_body1.belly.joint_index,        combine(inverseBaseTransform, display_body1.belly.transform));
+   mCurrentPose1.SetLocalTransform(display_body1.pelvis.joint_index,       combine(inverseBaseTransform, display_body1.pelvis.transform));
+   mCurrentPose1.SetLocalTransform(display_body1.leg_top_l.joint_index,    combine(inverseBaseTransform, display_body1.leg_top_l.transform));
+   mCurrentPose1.SetLocalTransform(display_body1.leg_bottom_l.joint_index, combine(inverseBaseTransform, display_body1.leg_bottom_l.transform));
+   mCurrentPose1.SetLocalTransform(display_body1.leg_top_r.joint_index,    combine(inverseBaseTransform, display_body1.leg_top_r.transform));
+   mCurrentPose1.SetLocalTransform(display_body1.leg_bottom_r.joint_index, combine(inverseBaseTransform, display_body1.leg_bottom_r.transform));
+
+   mCurrentPose2.SetLocalTransform(display_body2.chest.joint_index,        combine(inverseBaseTransform, display_body2.chest.transform));
+   mCurrentPose2.SetLocalTransform(display_body2.arm_top_l.joint_index,    combine(inverseBaseTransform, display_body2.arm_top_l.transform));
+   mCurrentPose2.SetLocalTransform(display_body2.arm_bottom_l.joint_index, combine(inverseBaseTransform, display_body2.arm_bottom_l.transform));
+   mCurrentPose2.SetLocalTransform(display_body2.arm_top_r.joint_index,    combine(inverseBaseTransform, display_body2.arm_top_r.transform));
+   mCurrentPose2.SetLocalTransform(display_body2.arm_bottom_r.joint_index, combine(inverseBaseTransform, display_body2.arm_bottom_r.transform));
+   mCurrentPose2.SetLocalTransform(display_body2.head.joint_index,         combine(inverseBaseTransform, display_body2.head.transform));
+   mCurrentPose2.SetLocalTransform(display_body2.belly.joint_index,        combine(inverseBaseTransform, display_body2.belly.transform));
+   mCurrentPose2.SetLocalTransform(display_body2.pelvis.joint_index,       combine(inverseBaseTransform, display_body2.pelvis.transform));
+   mCurrentPose2.SetLocalTransform(display_body2.leg_top_l.joint_index,    combine(inverseBaseTransform, display_body2.leg_top_l.transform));
+   mCurrentPose2.SetLocalTransform(display_body2.leg_bottom_l.joint_index, combine(inverseBaseTransform, display_body2.leg_bottom_l.transform));
+   mCurrentPose2.SetLocalTransform(display_body2.leg_top_r.joint_index,    combine(inverseBaseTransform, display_body2.leg_top_r.transform));
+   mCurrentPose2.SetLocalTransform(display_body2.leg_bottom_r.joint_index, combine(inverseBaseTransform, display_body2.leg_bottom_r.transform));
 }
 
 float AnimatedCharacter::MoveTowardsF(float a, float b, float max_dist)
@@ -918,7 +1117,7 @@ void AnimatedCharacter::Step(float step, const std::shared_ptr<Window>& window)
    // If on ground, look in the direction you are moving
    // Here we calculate the forward vector of the chest's triangle
    glm::vec3 forward = glm::normalize(glm::cross(display.simple_rig.mPoints[4].currPos - display.simple_rig.mPoints[0].currPos, display.simple_rig.mPoints[2].currPos - display.simple_rig.mPoints[0].currPos));
-   look_target = display_body.head.transform.position + forward * 0.1f;
+   look_target = display_body1.head.transform.position + forward * 0.1f;
    look_target += future_pos - past_pos;
 
    { // Run animation

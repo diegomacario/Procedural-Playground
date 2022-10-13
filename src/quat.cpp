@@ -421,3 +421,13 @@ glm::vec3 normalizeWithZeroLengthCheck(const glm::vec3& v)
 
    return v / glm::sqrt(squaredLen);
 }
+
+glm::quat quatToGLMQuat(const Q::quat& quat)
+{
+   return glm::quat(quat.w, quat.x, quat.y, quat.z);
+}
+
+Q::quat glmQuatToQuat(const glm::quat& quat)
+{
+   return Q::quat(quat.x, quat.y, quat.z, quat.w);
+}

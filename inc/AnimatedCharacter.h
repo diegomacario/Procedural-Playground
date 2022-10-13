@@ -87,15 +87,25 @@ private:
    float GetAngleGivenSides(float a, float b, float c);
 
    // Solve two bone IK problems
-   void ApplyTwoBoneIK(int start_id,
-                       int end_id,
-                       const glm::vec3& forward,
-                       const std::array<glm::vec3, 3>& ik,
-                       DisplayBone& top,
-                       DisplayBone& bottom,
-                       const std::vector<VerletSystem::Point>& points,
-                       const glm::vec3& old_axis,
-                       const glm::vec3& axis);
+   void ApplyTwoBoneIK1(int start_id,
+                        int end_id,
+                        const glm::vec3& forward,
+                        const std::array<glm::vec3, 3>& ik,
+                        DisplayBone& top,
+                        DisplayBone& bottom,
+                        const std::vector<VerletSystem::Point>& points,
+                        const glm::vec3& old_axis,
+                        const glm::vec3& axis);
+
+   void ApplyTwoBoneIK2(int start_id,
+                        int end_id,
+                        const glm::vec3& forward,
+                        const std::array<glm::vec3, 3>& ik,
+                        DisplayBone& top,
+                        DisplayBone& bottom,
+                        const std::vector<VerletSystem::Point>& points,
+                        const glm::vec3& old_axis,
+                        const glm::vec3& axis);
 
    // Calculate bone transform that matches orientation of top and bottom points, and looks in the character "forward" direction
    void ApplyBound(DisplayBone& part, const glm::vec3& forward, const glm::vec3& bind_forward, int start, int end);
@@ -122,11 +132,13 @@ private:
    std::vector<AnimatedMesh> mPointsMeshes;
    std::vector<glm::vec3>    mPointsBaseColors;
 
-   Pose                      mCurrentPose;
+   Pose                      mCurrentPose1;
+   Pose                      mCurrentPose2;
 
    // ---
 
-   DisplayBody display_body;
+   DisplayBody display_body1;
+   DisplayBody display_body2;
 
    // Particle simulation systems
    VerletSystem complete;

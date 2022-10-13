@@ -90,4 +90,7 @@ namespace Q
 
 glm::vec3 normalizeWithZeroLengthCheck(const glm::vec3& v);
 
+glm::quat quatToGLMQuat(const Q::quat& quat);
+Q::quat   glmQuatToQuat(const glm::quat& quat);
+
 #endif
