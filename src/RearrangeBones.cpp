@@ -189,6 +189,34 @@ JointMap RearrangeSkeleton(Skeleton& skeleton)
    return mapOldToNew;
 }
 
+void RearrangeClip(Clip& clip, JointMap& jointMap)
+{
+   // Loop over all the transform tracks of the clip and update the indices of the joints that they target
+   for (unsigned int transfTrackIndex = 0,
+        numTransfTracks = clip.GetNumberOfTransformTracks();
+        transfTrackIndex < numTransfTracks;
+        ++transfTrackIndex)
+   {
+      int oldJointIndex = static_cast<int>(clip.GetJointIDOfTransformTrack(transfTrackIndex));
+      unsigned int newJointIndex = static_cast<unsigned int>(jointMap[oldJointIndex]);
+      clip.SetJointIDOfTransformTrack(transfTrackIndex, newJointIndex);
+   }
+}
+
+void RearrangeFastClip(FastClip& fastClip, JointMap& jointMap)
+{
+   // Loop over all the transform tracks of the fast clip and update the indices of the joints that they target
+   for (unsigned int transfTrackIndex = 0,
+        numTransfTracks = fastClip.GetNumberOfTransformTracks();
+        transfTrackIndex < numTransfTracks;
+        ++transfTrackIndex)
+   {
+      int oldJointIndex = static_cast<int>(fastClip.GetJointIDOfTransformTrack(transfTrackIndex));
+      unsigned int newJointIndex = static_cast<unsigned int>(jointMap[oldJointIndex]);
+      fastClip.SetJointIDOfTransformTrack(transfTrackIndex, newJointIndex);
+   }
+}
+
 void RearrangeMesh(AnimatedMesh& mesh, JointMap& jointMap)
 {
    std::vector<glm::ivec4>& influences = mesh.GetInfluences();

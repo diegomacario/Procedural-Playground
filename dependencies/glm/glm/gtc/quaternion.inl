@@ -194,19 +194,6 @@ namespace glm
 
 		return quat_cast(Result);
 	}
-
-	template<typename T, qualifier Q>
-	GLM_FUNC_QUALIFIER qua<T, Q> quatLookRotation(vec<3, T, Q> const& direction, vec<3, T, Q> const& up)
-	{
-		mat<3, 3, T, Q> Result;
-
-		Result[2] = direction;
-		vec<3, T, Q> const& Right = cross(up, Result[2]);
-		Result[0] = Right * inversesqrt(max(static_cast<T>(0.00001), dot(Right, Right)));
-		Result[1] = cross(Result[2], Result[0]);
-
-		return quat_cast(Result);
-	}
 }//namespace glm
 
 #if GLM_CONFIG_SIMD == GLM_ENABLE
