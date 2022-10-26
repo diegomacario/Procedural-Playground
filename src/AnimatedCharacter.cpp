@@ -1,5 +1,4 @@
 #include <glm/ext/scalar_constants.hpp>
-#include <glm/gtc/quaternion.hpp>
 
 #include "resource_manager.h"
 #include "shader_loader.h"
@@ -504,19 +503,19 @@ void AnimatedCharacter::ApplyTwoBoneIK(int start_id,
    // With only this rotation the arms are stiff (i.e. they rotate around the shoulder, but they don't bend at the elbows)
    // (end.pos - start.pos) = (hand - shoulder) = points downwards
    // forward points backwards
-   Q::quat base_rotation1 = Q::inverse(Q::lookRotation(end.bindPos - start.bindPos, glm::vec3(0.0f, 0.0f, 1.0f))) * Q::lookRotation(end.currPos - start.currPos, forward);
+   Q::quat base_rotation = Q::inverse(Q::lookRotation(end.bindPos - start.bindPos, glm::vec3(0.0f, 0.0f, 1.0f))) * Q::lookRotation(end.currPos - start.currPos, forward);
    // Apply additional rotation from IK
-   base_rotation1 = Q::inverse(Q::angleAxis(old_base_angle, old_axis)) * base_rotation1 * Q::angleAxis(base_angle, axis);
+   base_rotation = Q::inverse(Q::angleAxis(old_base_angle, old_axis)) * base_rotation * Q::angleAxis(base_angle, axis);
 
    // Apply base and hinge rotations to actual display bones
    // bind_bicep + (shoulder - bind_shoulder) = move bicep into position below the shoulder
    top.transform.position = top.bind_pos + (start.currPos - start.bindPos);
    // orient the bicep
-   top.transform.rotation = top.bind_rot * base_rotation1;
+   top.transform.rotation = top.bind_rot * base_rotation;
 
    // Move forearm into position below the arm
    bottom.transform.position = top.transform.position + Q::inverse(top.bind_rot) * top.transform.rotation * (bottom.bind_pos - top.bind_pos);
-   bottom.transform.rotation = bottom.bind_rot * Q::inverse(Q::angleAxis(old_hinge_angle, old_axis)) * base_rotation1 * Q::angleAxis(hinge_angle, axis);
+   bottom.transform.rotation = bottom.bind_rot * Q::inverse(Q::angleAxis(old_hinge_angle, old_axis)) * base_rotation * Q::angleAxis(hinge_angle, axis);
 }
 
 // Calculate bone transform that matches orientation of top and bottom points, and looks in the character "forward" direction
