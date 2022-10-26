@@ -382,6 +382,22 @@ Q::quat Q::lookRotation(const glm::vec3& direction, const glm::vec3& upReference
    return Q::normalized(result);
 }
 
+// lookRotation returns a quaternion that rotates from the world's forward vector (Z) to a desired direction
+// This means that the direction that's passed in becomes the forward vector of the rotated basis vectors
+Q::quat Q::lookRotation2(const glm::vec3& direction, const glm::vec3& upReference)
+{
+   // Calculate the rotated basis vectors
+   glm::vec3 fwd   = normalizeWithZeroLengthCheck(direction);
+   glm::vec3 up    = normalizeWithZeroLengthCheck(upReference);
+   glm::vec3 right = normalizeWithZeroLengthCheck(glm::cross(up, fwd));
+   up = glm::cross(fwd, right);
+
+   // Create a rotation matrix and convert it into a quaternion
+   return Q::normalized(Q::mat3ToQuat(glm::mat3(right.x, right.y, right.z,  // Column 0 (X)
+                                                up.x,    up.y,    up.z,     // Column 1 (Y)
+                                                fwd.x,   fwd.y,   fwd.z))); // Column 2 (Z)
+}
+
 glm::mat4 Q::quatToMat4(const Q::quat& q)
 {
    // Rotate the world's basis vectors using the quaternion
@@ -406,6 +422,78 @@ Q::quat Q::mat4ToQuat(const glm::mat4& m)
 
    // Use the lookRotation function to compose a quaternion that rotates from the world's basis vectors to the rotated basis vectors
    return Q::lookRotation(forward, up);
+}
+
+glm::mat3 Q::quatToMat3(const Q::quat& q)
+{
+   glm::mat3 result(1.0f);
+   float qxx(q.x * q.x);
+   float qyy(q.y * q.y);
+   float qzz(q.z * q.z);
+   float qxz(q.x * q.z);
+   float qxy(q.x * q.y);
+   float qyz(q.y * q.z);
+   float qwx(q.w * q.x);
+   float qwy(q.w * q.y);
+   float qwz(q.w * q.z);
+
+   result[0][0] = 1.0f - 2.0f * (qyy + qzz);
+   result[0][1] = 2.0f * (qxy + qwz);
+   result[0][2] = 2.0f * (qxz - qwy);
+
+   result[1][0] = 2.0f * (qxy - qwz);
+   result[1][1] = 1.0f - 2.0f * (qxx + qzz);
+   result[1][2] = 2.0f * (qyz + qwx);
+
+   result[2][0] = 2.0f * (qxz + qwy);
+   result[2][1] = 2.0f * (qyz - qwx);
+   result[2][2] = 1.0f - 2.0f * (qxx + qyy);
+
+   return result;
+}
+
+Q::quat Q::mat3ToQuat(const glm::mat3& m)
+{
+   float fourXSquaredMinus1 = m[0][0] - m[1][1] - m[2][2];
+   float fourYSquaredMinus1 = m[1][1] - m[0][0] - m[2][2];
+   float fourZSquaredMinus1 = m[2][2] - m[0][0] - m[1][1];
+   float fourWSquaredMinus1 = m[0][0] + m[1][1] + m[2][2];
+
+   int biggestIndex = 0;
+   float fourBiggestSquaredMinus1 = fourWSquaredMinus1;
+   if (fourXSquaredMinus1 > fourBiggestSquaredMinus1)
+   {
+      fourBiggestSquaredMinus1 = fourXSquaredMinus1;
+      biggestIndex = 1;
+   }
+   if (fourYSquaredMinus1 > fourBiggestSquaredMinus1)
+   {
+      fourBiggestSquaredMinus1 = fourYSquaredMinus1;
+      biggestIndex = 2;
+   }
+   if (fourZSquaredMinus1 > fourBiggestSquaredMinus1)
+   {
+      fourBiggestSquaredMinus1 = fourZSquaredMinus1;
+      biggestIndex = 3;
+   }
+
+   float biggestVal = sqrt(fourBiggestSquaredMinus1 + 1.0f) * 0.5f;
+   float mult = 0.25f / biggestVal;
+
+   switch (biggestIndex)
+   {
+   case 0:
+      return Q::quat((m[1][2] - m[2][1]) * mult, (m[2][0] - m[0][2]) * mult, (m[0][1] - m[1][0]) * mult, biggestVal);
+   case 1:
+      return Q::quat(biggestVal, (m[0][1] + m[1][0]) * mult, (m[2][0] + m[0][2]) * mult, (m[1][2] - m[2][1]) * mult);
+   case 2:
+      return Q::quat((m[0][1] + m[1][0]) * mult, biggestVal, (m[1][2] + m[2][1]) * mult, (m[2][0] - m[0][2]) * mult);
+   case 3:
+      return Q::quat((m[2][0] + m[0][2]) * mult, (m[1][2] + m[2][1]) * mult, biggestVal, (m[0][1] - m[1][0]) * mult);
+   default:
+      assert(false);
+      return Q::quat(0, 0, 0, 1);
+   }
 }
 
 // TODO: This function shouldn't be declared in quat.h

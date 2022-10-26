@@ -362,7 +362,7 @@ void AnimatedCharacter::render(const std::shared_ptr<Shader>& staticMeshWithoutU
       staticMeshWithoutUVsShader->setUniformMat4("model", transformToMat4(globalTransform));
       staticMeshWithoutUVsShader->setUniformVec3("baseColor", mBaseColors[i]);
 
-      //mMeshes[i].Render();
+      mMeshes[i].Render();
    }
    //glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
 
@@ -583,19 +583,19 @@ void AnimatedCharacter::ApplyTwoBoneIK2(int start_id,
    // With only this rotation the arms are stiff (i.e. they rotate around the shoulder, but they don't bend at the elbows)
    // (end.pos - start.pos) = (hand - shoulder) = points downwards
    // forward points backwards
-   glm::quat base_rotation2 = glm::quatLookAt(glm::normalize(end.currPos - start.currPos), forward) * glm::inverse(glm::quatLookAt(glm::normalize(end.bindPos - start.bindPos), glm::vec3(0.0f, 0.0f, 1.0f)));
+   Q::quat base_rotation1 = Q::inverse(Q::lookRotation2(end.bindPos - start.bindPos, glm::vec3(0.0f, 0.0f, 1.0f))) * Q::lookRotation2(end.currPos - start.currPos, forward);
    // Apply additional rotation from IK
-   base_rotation2 = glm::angleAxis(base_angle, axis) * base_rotation2 * glm::inverse(glm::angleAxis(old_base_angle, old_axis));
+   base_rotation1 = Q::inverse(Q::angleAxis(old_base_angle, old_axis)) * base_rotation1 * Q::angleAxis(base_angle, axis);
 
    // Apply base and hinge rotations to actual display bones
    // bind_bicep + (shoulder - bind_shoulder) = move bicep into position below the shoulder
    top.transform.position = top.bind_pos + (start.currPos - start.bindPos);
    // orient the bicep
-   top.transform.rotation = glmQuatToQuat(base_rotation2 * quatToGLMQuat(top.bind_rot));
+   top.transform.rotation = top.bind_rot * base_rotation1;
 
    // Move forearm into position below the arm
-   bottom.transform.position = top.transform.position + quatToGLMQuat(top.transform.rotation) * glm::inverse(quatToGLMQuat(top.bind_rot)) * (bottom.bind_pos - top.bind_pos);
-   bottom.transform.rotation = glmQuatToQuat(glm::angleAxis(hinge_angle, axis) * base_rotation2 * glm::inverse(glm::angleAxis(old_hinge_angle, old_axis)) * quatToGLMQuat(bottom.bind_rot));
+   bottom.transform.position = top.transform.position + Q::inverse(top.bind_rot) * top.transform.rotation * (bottom.bind_pos - top.bind_pos);
+   bottom.transform.rotation = bottom.bind_rot * Q::inverse(Q::angleAxis(old_hinge_angle, old_axis)) * base_rotation1 * Q::angleAxis(hinge_angle, axis);
 }
 
 // Calculate bone transform that matches orientation of top and bottom points, and looks in the character "forward" direction
