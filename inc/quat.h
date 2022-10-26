@@ -83,18 +83,14 @@ namespace Q
    quat      slerp(const quat& start, const quat& end, float t);
 
    quat      lookRotation(const glm::vec3& direction, const glm::vec3& upReference);
-   quat      lookRotation2(const glm::vec3& direction, const glm::vec3& upReference);
-
-   glm::mat4 quatToMat4(const quat& q);
-   quat      mat4ToQuat(const glm::mat4& m);
 
    glm::mat3 quatToMat3(const quat& q);
    quat      mat3ToQuat(const glm::mat3& m);
+
+   glm::mat4 quatToMat4(const quat& q);
+   quat      mat4ToQuat(const glm::mat4& m);
 }
 
 glm::vec3 normalizeWithZeroLengthCheck(const glm::vec3& v);
-
-glm::quat quatToGLMQuat(const Q::quat& quat);
-Q::quat   glmQuatToQuat(const glm::quat& quat);
 
 #endif

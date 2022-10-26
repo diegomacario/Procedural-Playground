@@ -363,32 +363,6 @@ Q::quat Q::lookRotation(const glm::vec3& direction, const glm::vec3& upReference
    // Calculate the rotated basis vectors
    glm::vec3 fwd   = normalizeWithZeroLengthCheck(direction);
    glm::vec3 up    = normalizeWithZeroLengthCheck(upReference);
-   glm::vec3 right = glm::cross(up, fwd);
-   up = glm::cross(fwd, right);
-
-   // Calculate a quaternion that rotates from the world forward to the desired forward
-   Q::quat fromWorldFwdToDesiredFwd = Q::fromTo(glm::vec3(0, 0, 1), fwd);
-
-   // Calculate what happens to the world up when we rotate from the world forward to the desired forward
-   glm::vec3 rotatedWorldUp = fromWorldFwdToDesiredFwd * glm::vec3(0, 1, 0);
-
-   // Calculate a quaternion that rotates from the rotated world up to the desired up
-   Q::quat fromRotatedWorldUpToDesiredUp = Q::fromTo(rotatedWorldUp, up);
-
-   // Calculate a quaternion that rotates to the desired forward first and then to the desired up
-   // NOTE: Reversed because q * p is implemented as p * q
-   Q::quat result = fromWorldFwdToDesiredFwd * fromRotatedWorldUpToDesiredUp;
-
-   return Q::normalized(result);
-}
-
-// lookRotation returns a quaternion that rotates from the world's forward vector (Z) to a desired direction
-// This means that the direction that's passed in becomes the forward vector of the rotated basis vectors
-Q::quat Q::lookRotation2(const glm::vec3& direction, const glm::vec3& upReference)
-{
-   // Calculate the rotated basis vectors
-   glm::vec3 fwd   = normalizeWithZeroLengthCheck(direction);
-   glm::vec3 up    = normalizeWithZeroLengthCheck(upReference);
    glm::vec3 right = normalizeWithZeroLengthCheck(glm::cross(up, fwd));
    up = glm::cross(fwd, right);
 
@@ -398,32 +372,7 @@ Q::quat Q::lookRotation2(const glm::vec3& direction, const glm::vec3& upReferenc
                                                 fwd.x,   fwd.y,   fwd.z))); // Column 2 (Z)
 }
 
-glm::mat4 Q::quatToMat4(const Q::quat& q)
-{
-   // Rotate the world's basis vectors using the quaternion
-   glm::vec3 right = q * glm::vec3(1, 0, 0);
-   glm::vec3 up    = q * glm::vec3(0, 1, 0);
-   glm::vec3 fwd   = q * glm::vec3(0, 0, 1);
-
-   // Compose a rotation matrix using the rotated basis vectors
-   return glm::mat4(right.x, right.y, right.z, 0,  // Column 0 (X)
-                    up.x,    up.y,    up.z,    0,  // Column 1 (Y)
-                    fwd.x,   fwd.y,   fwd.z,   0,  // Column 2 (Z)
-                    0,       0,       0,       1); // Column 3
-}
-
-Q::quat Q::mat4ToQuat(const glm::mat4& m)
-{
-   // Get the rotated basis vectors from the matrix
-   glm::vec3 up      = normalizeWithZeroLengthCheck(glm::vec3(m[1].x, m[1].y, m[1].z));
-   glm::vec3 forward = normalizeWithZeroLengthCheck(glm::vec3(m[2].x, m[2].y, m[2].z));
-   glm::vec3 right   = glm::cross(up, forward);
-   up = glm::cross(forward, right);
-
-   // Use the lookRotation function to compose a quaternion that rotates from the world's basis vectors to the rotated basis vectors
-   return Q::lookRotation(forward, up);
-}
-
+// This function is based on the glm::mat3_cast function
 glm::mat3 Q::quatToMat3(const Q::quat& q)
 {
    glm::mat3 result(1.0f);
@@ -452,6 +401,7 @@ glm::mat3 Q::quatToMat3(const Q::quat& q)
    return result;
 }
 
+// This function is based on the glm::quat_cast function
 Q::quat Q::mat3ToQuat(const glm::mat3& m)
 {
    float fourXSquaredMinus1 = m[0][0] - m[1][1] - m[2][2];
@@ -496,6 +446,32 @@ Q::quat Q::mat3ToQuat(const glm::mat3& m)
    }
 }
 
+glm::mat4 Q::quatToMat4(const Q::quat& q)
+{
+   // Rotate the world's basis vectors using the quaternion
+   glm::vec3 right = q * glm::vec3(1, 0, 0);
+   glm::vec3 up    = q * glm::vec3(0, 1, 0);
+   glm::vec3 fwd   = q * glm::vec3(0, 0, 1);
+
+   // Compose a rotation matrix using the rotated basis vectors
+   return glm::mat4(right.x, right.y, right.z, 0,  // Column 0 (X)
+                    up.x,    up.y,    up.z,    0,  // Column 1 (Y)
+                    fwd.x,   fwd.y,   fwd.z,   0,  // Column 2 (Z)
+                    0,       0,       0,       1); // Column 3
+}
+
+Q::quat Q::mat4ToQuat(const glm::mat4& m)
+{
+   // Get the rotated basis vectors from the matrix
+   glm::vec3 up      = normalizeWithZeroLengthCheck(glm::vec3(m[1].x, m[1].y, m[1].z));
+   glm::vec3 forward = normalizeWithZeroLengthCheck(glm::vec3(m[2].x, m[2].y, m[2].z));
+   glm::vec3 right   = glm::cross(up, forward);
+   up = glm::cross(forward, right);
+
+   // Use the lookRotation function to compose a quaternion that rotates from the world's basis vectors to the rotated basis vectors
+   return Q::lookRotation(forward, up);
+}
+
 // TODO: This function shouldn't be declared in quat.h
 // This helper function is identical to glm::normalize, except that it checks if the length of the vector
 // we want to normalize is zero, and if it is then it doesn't normalize it
@@ -508,14 +484,4 @@ glm::vec3 normalizeWithZeroLengthCheck(const glm::vec3& v)
    }
 
    return v / glm::sqrt(squaredLen);
-}
-
-glm::quat quatToGLMQuat(const Q::quat& quat)
-{
-   return glm::quat(quat.w, quat.x, quat.y, quat.z);
-}
-
-Q::quat glmQuatToQuat(const glm::quat& quat)
-{
-   return Q::quat(quat.x, quat.y, quat.z, quat.w);
 }
