@@ -59,10 +59,6 @@ private:
    AnimatedCharacter                   mAnimatedCharacter;
 
    bool                                mDisplayGround;
-
-#ifndef __EMSCRIPTEN__
-   bool                                mPause = false;
-#endif
 };
 
 #endif

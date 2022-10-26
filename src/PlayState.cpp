@@ -34,10 +34,6 @@ PlayState::PlayState(const std::shared_ptr<FiniteStateMachine>& finiteStateMachi
 
 void PlayState::initializeState()
 {
-#ifndef __EMSCRIPTEN__
-   mPause = false;
-#endif
-
    mDisplayGround = true;
 }
 
@@ -101,26 +97,11 @@ void PlayState::processInput()
       mWindow->resetScrollWheelMoved();
    }
 
-#ifndef __EMSCRIPTEN__
-   if (mWindow->keyIsPressed(GLFW_KEY_P) && !mWindow->keyHasBeenProcessed(GLFW_KEY_P))
-   {
-      mWindow->setKeyAsProcessed(GLFW_KEY_P);
-      mPause = !mPause;
-   }
-#endif
-
    mAnimatedCharacter.clearDebugLines();
 }
 
 void PlayState::update(float deltaTime)
 {
-#ifndef __EMSCRIPTEN__
-   if (mPause)
-   {
-      return;
-   }
-#endif
-
    mAnimatedCharacter.Update();
 
    glm::vec3 playerCOM = mAnimatedCharacter.getCOM();
@@ -270,7 +251,6 @@ void PlayState::userInterface()
                         "to rotate the camera around the character.");
       ImGui::BulletText("Use the scroll wheel to zoom in and out.");
 #ifndef __EMSCRIPTEN__
-      ImGui::BulletText("Press the P key to pause the animation.");
       ImGui::BulletText("Press the R key to reset the camera.");
 #endif
    }

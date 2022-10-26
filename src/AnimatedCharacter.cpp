@@ -393,7 +393,7 @@ void AnimatedCharacter::render(const std::shared_ptr<Shader>& staticMeshWithoutU
    //glDisable(GL_DEPTH_TEST);
    //walk.simple_rig.DrawBones(mLineShader, glm::vec3(1.0f, 0.0f, 0.0f));
    //display.simple_rig.DrawBones(mLineShader, glm::vec3(0.0f, 1.0f, 0.0f));
-   complete.DrawBones(mLineShader, glm::vec3(1.0f, 1.0f, 0.0f));
+   //complete.DrawBones(mLineShader, glm::vec3(1.0f, 1.0f, 0.0f));
 
    // Loop over the skeleton lines and render each one
    //for (unsigned int i = 0,
